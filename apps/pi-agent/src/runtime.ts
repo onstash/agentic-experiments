@@ -61,6 +61,14 @@ export type RuntimeStreamChunk =
       result: Awaited<ReturnType<typeof searchJobsTool.execute>>;
     }
   | {
+      type: "step_evaluated";
+      toolName: "search_oss" | "search_jobs";
+      evaluation: {
+        useful: boolean;
+        shouldContinue: boolean;
+      };
+    }
+  | {
       type: "runtime_completed";
       stopReason: StopReason;
       totalIterations: number;
@@ -184,6 +192,62 @@ function decideNextAction(
   };
 }
 
+async function executeTool(decision: AgentDecision) {
+  if (decision.kind !== "call_tool") {
+    throw new Error("Cannot execute tool for a non-call_tool decision");
+  }
+  const { toolName: nextToolName, query } = decision;
+  if (nextToolName === "search_oss") {
+    const result = await searchOssTool.execute({ query });
+    return result;
+  }
+  const result = await searchJobsTool.execute({ query });
+  return result;
+}
+
+type StepEvaluation = {
+  useful: boolean;
+  reason: string;
+  shouldContinue: boolean;
+};
+
+function evaluateToolResult(
+  decision: AgentDecision,
+  executedToolNames: Set<RuntimeToolName>,
+  candidateToolNames: Array<RuntimeToolName>,
+  result: ScoredSourceHit<RawOssHit>[] | ScoredSourceHit<RawJobHit>[],
+): StepEvaluation {
+  if (decision.kind === "stop") {
+    return {
+      useful: false,
+      reason: "No further tools to execute.",
+      shouldContinue: false,
+    };
+  }
+
+  const nextToolName = decision.toolName;
+  if (executedToolNames.has(nextToolName)) {
+    return {
+      useful: false,
+      reason: `Tool ${nextToolName} has already been executed.`,
+      shouldContinue: false,
+    };
+  }
+  executedToolNames.add(nextToolName);
+
+  const areRemainingToolsAvailable = candidateToolNames.filter(
+    (toolName) => !executedToolNames.has(toolName),
+  ).length > 0;
+
+  const areResultsAvailable = result.length > 0;
+
+  return {
+    useful: areResultsAvailable,
+    reason: areResultsAvailable ? "Tool execution returned results." : "Tool execution returned no results.",
+    shouldContinue: areRemainingToolsAvailable,
+  };
+}
+
 export async function* streamRuntime(
   input: RuntimeInput,
   options: RuntimeLoopOptions = getDefaultLoopOptions(),
@@ -209,46 +273,35 @@ export async function* streamRuntime(
       stopReason = decision.reason;
       break;
     }
-    const nextToolName = decision.toolName;
-    if (executedToolNames.has(nextToolName)) {
-      stopReason = "repeated_tool_call";
+    yield { type: "tool_selected", toolName: decision.toolName };
+    const result = await executeTool(decision);
+    if (decision.toolName === "search_oss") {
+      yield {
+        type: "tool_executed",
+        toolName: "search_oss",
+        resultCount: result.length,
+        result: result as Awaited<ReturnType<typeof searchOssTool.execute>>,
+      };
+    } else {
+      yield {
+        type: "tool_executed",
+        toolName: "search_jobs",
+        resultCount: result.length,
+        result: result as Awaited<ReturnType<typeof searchJobsTool.execute>>,
+      };
+    }
+    totalCount += result.length;
+
+    const evaluation = evaluateToolResult(
+      decision,
+      executedToolNames,
+      candidateToolNames,
+      result,
+    );
+    yield { type: "step_evaluated", toolName: decision.toolName, evaluation };
+    if (!evaluation.useful && !evaluation.shouldContinue) {
+      stopReason = "no_better_next_action";
       break;
-    }
-    executedToolNames.add(nextToolName);
-    yield { type: "tool_selected", toolName: nextToolName };
-
-    let result: ScoredSourceHit<RawOssHit>[] | ScoredSourceHit<RawJobHit>[] =
-      [];
-    if (nextToolName === "search_oss") {
-      result = await searchOssTool.execute({ query });
-      totalCount += result.length;
-
-      yield {
-        type: "tool_executed",
-        toolName: nextToolName,
-        resultCount: result.length,
-        result,
-      };
-    } else if (nextToolName === "search_jobs") {
-      result = await searchJobsTool.execute({ query });
-      totalCount += result.length;
-
-      yield {
-        type: "tool_executed",
-        toolName: nextToolName,
-        resultCount: result.length,
-        result,
-      };
-    }
-    if (result.length === 0) {
-      const remainingToolNames = candidateToolNames.filter(
-        (toolName) => !executedToolNames.has(toolName),
-      );
-      if (remainingToolNames.length === 0) {
-        stopReason = "low_signal_result";
-        break;
-      }
-      continue;
     }
   }
 

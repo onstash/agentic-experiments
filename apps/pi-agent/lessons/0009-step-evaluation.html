@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lesson 9: Evaluate Each Step</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Lesson 9</p>
+      <h1>Evaluate Each Step</h1>
+      <p class="lede">A tool call is not automatically progress. After each call, the runtime should record what the result means and whether another step is justified.</p>
+
+      <section class="card">
+        <h2>Progress</h2>
+        <p>Lessons <a href="./0001-cli-first-opportunity-agent.html">1</a>–<a href="./0008-first-decision-protocol.html">8</a> are studied and learned. Lesson 8 separated choosing an action from executing it. Lesson 9 adds judgment after execution.</p>
+      </section>
+
+      <section class="card">
+        <h2>The New Boundary</h2>
+        <pre>decide → execute tool → evaluate result → decide again</pre>
+        <p>The evaluator does not choose the next tool. It describes the current step. The decision helper uses runtime state to choose what happens next.</p>
+      </section>
+
+      <section class="card">
+        <h2>Small, Deterministic Shape</h2>
+        <pre>type StepEvaluation = {
+  useful: boolean;
+  reason: string;
+  shouldContinue: boolean;
+};</pre>
+        <p>For now, result count is enough evidence:</p>
+        <ul>
+          <li>results &gt; 0 → useful</li>
+          <li>results = 0 with another tool → not useful, continue</li>
+          <li>results = 0 with no tool left → not useful, stop</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>What the Stream Shows</h2>
+        <pre>{ type: "tool_executed", toolName: "search_jobs", resultCount: 1 }
+{ type: "step_evaluated",
+  toolName: "search_jobs",
+  evaluation: { useful: true, shouldContinue: false } }</pre>
+        <p>This makes the runtime inspectable: consumers can see both the evidence and the runtime’s interpretation of it.</p>
+      </section>
+
+      <section class="card quiz">
+        <h2>Retrieval Practice</h2>
+        <ol>
+          <li>Why should evaluation happen after execution?</li>
+          <li>Is an empty result always a reason to stop?</li>
+          <li>What is the difference between <code>useful</code> and <code>shouldContinue</code>?</li>
+        </ol>
+      </section>
+
+      <section class="card prompt">
+        <h2>Action</h2>
+        <p>Run the CLI and look for <code>tool_executed</code> followed by <code>step_evaluated</code>. Compare <code>"developer relations"</code> with <code>"react open source"</code>.</p>
+        <p>Use the <a href="../reference/step-evaluation.html">Step Evaluation reference</a> while reading <code>runtime.ts</code>.</p>
+      </section>
+
+      <section class="card">
+        <h2>Primary Source</h2>
+        <p>Use the <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html">TypeScript Handbook: Narrowing</a> to review how the discriminated stream-event union keeps each event’s fields type-safe.</p>
+      </section>
+
+      <section class="card">
+        <h2>Ask Follow-Ups</h2>
+        <p>Ask me to trace one query event-by-event or explain any field in <code>StepEvaluation</code>.</p>
+      </section>
+    </main>
+  </body>
+</html>

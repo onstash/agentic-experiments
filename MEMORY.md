@@ -83,3 +83,81 @@ We kept trying to explain the same streaming/result problem in slightly differen
 
 If a runtime shape is already confusing, do not keep iterating on it verbally in circles.
 Write down the mistake, write down the fix, and move to the cleaner shape once.
+
+## 2026-07-21
+
+### Teaching mode: continue from the handoff
+
+The user is learning by building a Pi-inspired TypeScript opportunity agent.
+Lessons 1-8 are completed and recorded. The next course milestone is Lesson 9:
+step evaluation.
+
+Relevant teaching artifacts live under:
+
+- `apps/pi-agent/lessons/`
+- `apps/pi-agent/learning-records/`
+- `apps/pi-agent/reference/`
+
+The project mission is in `apps/pi-agent/MISSION.md`.
+
+### User preference: teach before changing code
+
+The user wants explicit teaching and collaborative guidance, not silent
+implementation. Explain the concept, identify the smallest change, and wait
+for an explicit implementation request before editing code or creating
+artifacts.
+
+### Scope boundary
+
+Do not infer permission to implement from a request to continue, inspect,
+analyze, or guide. Those requests authorize explanation and read-only review.
+Only modify files when the user explicitly asks to create, update, fix,
+implement, or otherwise change them.
+
+### Current runtime concepts learned
+
+- `streamRuntime(...)` is the canonical streaming API.
+- `maxIterations` bounds the loop.
+- `decideNextAction(...)` separates choosing from executing.
+- `step_evaluated` is the next runtime concept: evaluate result usefulness and
+  whether another action is justified.
+
+### Git hygiene
+
+Keep runtime code commits separate from teaching-artifact commits. Before any
+commit, inspect staged and unstaged files and confirm the user requested the
+commit.
+
+### TypeScript lesson: preserve tool/result correlation
+
+`RuntimeStreamChunk` is a discriminated union:
+
+- `toolName: "search_oss"` must carry OSS results
+- `toolName: "search_jobs"` must carry job results
+
+These two independent union values are not enough for TypeScript to prove the
+relationship:
+
+```ts
+toolName: "search_oss" | "search_jobs";
+result: OssResult[] | JobResult[];
+```
+
+When yielding a typed event, narrow on the tool name first and construct the
+matching result inside that branch. TypeScript then knows the pair is valid.
+
+Rule of thumb:
+
+> When two values are related by a discriminant, narrow the discriminant before
+> using or returning the related value.
+
+### Lesson 9 status
+
+Step evaluation is being taught but is not yet fully complete in the runtime.
+Remaining concerns include:
+
+- emit `step_evaluated` events
+- keep `evaluateToolResult(...)` focused on evaluation
+- ensure empty results with remaining tools mean `useful: false` and
+  `shouldContinue: true`
+- preserve tool/result typing when emitting `tool_executed`

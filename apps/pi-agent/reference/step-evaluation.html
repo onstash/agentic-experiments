@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Step Evaluation Reference</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Reference</p>
+      <h1>Step Evaluation</h1>
+      <p class="lede">A compact reference for interpreting one tool result inside the bounded runtime loop.</p>
+      <section class="card">
+        <h2>Shape</h2>
+        <pre>type StepEvaluation = {
+  useful: boolean;
+  reason: string;
+  shouldContinue: boolean;
+};</pre>
+      </section>
+      <section class="card">
+        <h2>Decision Table</h2>
+        <table>
+          <thead><tr><th>Result count</th><th>Remaining tools</th><th>Useful</th><th>Continue</th></tr></thead>
+          <tbody>
+            <tr><td>&gt; 0</td><td>&gt; 0</td><td>yes</td><td>yes</td></tr>
+            <tr><td>&gt; 0</td><td>0</td><td>yes</td><td>no</td></tr>
+            <tr><td>0</td><td>&gt; 0</td><td>no</td><td>yes</td></tr>
+            <tr><td>0</td><td>0</td><td>no</td><td>no</td></tr>
+          </tbody>
+        </table>
+      </section>
+      <section class="card">
+        <h2>Event</h2>
+        <pre>{
+  type: "step_evaluated",
+  toolName: "search_oss",
+  evaluation: {
+    useful: false,
+    reason: "No result, but jobs remains.",
+    shouldContinue: true
+  }
+}</pre>
+      </section>
+      <section class="card">
+        <h2>Related</h2>
+        <p><a href="../lessons/0009-step-evaluation.html">Lesson 9</a> · <a href="./agent-decision-protocol.html">Decision Protocol</a> · <a href="./pi-inspired-agent-roadmap.html">Roadmap</a></p>
+      </section>
+    </main>
+  </body>
+</html>
