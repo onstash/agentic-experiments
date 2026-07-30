@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Episodic Memory Reference</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Reference</p>
+      <h1>Episodic Memory</h1>
+      <p class="lede">A compact guide to preserving one completed agent run.</p>
+
+      <section class="card">
+        <h2>Location</h2>
+        <pre>apps/pi-agent/memory/episodic/&lt;run-id&gt;.md</pre>
+      </section>
+
+      <section class="card">
+        <h2>Minimum Fields</h2>
+        <table>
+          <thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>Query</td><td>What the user asked</td></tr>
+            <tr><td>Steps</td><td>Decisions and tool calls</td></tr>
+            <tr><td>Results</td><td>Evidence returned by tools</td></tr>
+            <tr><td>Evaluations</td><td>What each result meant</td></tr>
+            <tr><td>Outcome</td><td>Final assistant summary</td></tr>
+            <tr><td>Stop reason</td><td>Why the loop ended</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Memory Boundaries</h2>
+        <ul>
+          <li><strong>Episodic:</strong> what happened in one run</li>
+          <li><strong>Working:</strong> what matters during the current run</li>
+          <li><strong>Semantic:</strong> durable facts across runs</li>
+          <li><strong>Procedural:</strong> durable ways of operating</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>Related</h2>
+        <p><a href="../lessons/0010-episodic-memory.html">Lesson 10</a> · <a href="./step-evaluation.html">Step Evaluation</a> · <a href="./pi-inspired-agent-roadmap.html">Roadmap</a></p>
+      </section>
+    </main>
+  </body>
+</html>

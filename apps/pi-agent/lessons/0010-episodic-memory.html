@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lesson 10: Persist Episodic Memory</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Lesson 10</p>
+      <h1>Persist Episodic Memory</h1>
+      <p class="lede">A streamed run disappears when the process exits. Episodic memory preserves what happened so the agent can inspect its past later.</p>
+
+      <section class="card">
+        <h2>Progress</h2>
+        <p>Lessons <a href="./0001-cli-first-opportunity-agent.html">1</a>–<a href="./0009-step-evaluation.html">9</a> are studied and learned. The runtime now produces a trace of decisions, tool calls, results, evaluations, and completion.</p>
+      </section>
+
+      <section class="card">
+        <h2>What Episodic Means</h2>
+        <p>Episodic memory records a specific event or run. It answers:</p>
+        <ul>
+          <li>What did the user ask?</li>
+          <li>What did the agent do?</li>
+          <li>What did the tools return?</li>
+          <li>Why did the run stop?</li>
+        </ul>
+        <p>It is a historical record, not a permanent fact about the world.</p>
+      </section>
+
+      <section class="card">
+        <h2>Recommended Shape</h2>
+        <pre>apps/pi-agent/memory/episodic/
+  2026-07-28-developer-relations.md</pre>
+        <p>Use one Markdown file per run. This keeps runs independently readable, searchable, and removable.</p>
+      </section>
+
+      <section class="card">
+        <h2>Run Record</h2>
+        <pre># Run: developer relations
+
+## Query
+developer relations
+
+## Steps
+- search_oss: 0 results; not useful; continued
+- search_jobs: 1 result; useful; stopped
+
+## Outcome
+Found 1 opportunity.
+
+## Stop reason
+no_better_next_action</pre>
+      </section>
+
+      <section class="card quiz">
+        <h2>Important Boundary</h2>
+        <p>Episodic memory records what happened. It does not automatically change future behavior. Later lessons will decide how to read it and whether to extract durable knowledge.</p>
+        <ol>
+          <li>Why is one file per run easier to maintain than one giant file?</li>
+          <li>Which fields come from the runtime trace?</li>
+          <li>Why is a run record different from semantic memory?</li>
+        </ol>
+      </section>
+
+      <section class="card prompt">
+        <h2>Action</h2>
+        <p>Read the companion <a href="../reference/episodic-memory.html">Episodic Memory reference</a>. Then design the Markdown record for one <code>developer relations</code> run before writing a persistence helper.</p>
+      </section>
+
+      <section class="card">
+        <h2>Primary Source</h2>
+        <p>Read the <a href="https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository">Git documentation on recording changes</a> as a practical analogy: durable history is most useful when each record has a clear scope and purpose.</p>
+      </section>
+
+      <section class="card">
+        <h2>Ask Follow-Ups</h2>
+        <p>Ask me to distinguish episodic, working, semantic, and procedural memory using this agent’s runtime.</p>
+      </section>
+    </main>
+  </body>
+</html>
