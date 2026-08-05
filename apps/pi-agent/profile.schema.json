@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GitHub Opportunity Agent Profile",
+  "type": "object",
+  "required": ["name", "profile", "experience_years", "primary_skills", "interests", "target_roles"],
+  "properties": {
+    "name": { "type": "string", "minLength": 1 },
+    "profile": { "type": "string", "minLength": 1 },
+    "experience_years": { "type": "number", "minimum": 0 },
+    "primary_skills": { "type": "array", "items": { "type": "string" } },
+    "additional_skills": { "type": "array", "items": { "type": "string" } },
+    "leadership_experience": { "type": "array", "items": { "type": "string" } },
+    "interests": { "type": "array", "items": { "type": "string" } },
+    "target_roles": { "type": "array", "items": { "type": "string" } },
+    "preferred_company_stage": { "type": "array", "items": { "type": "string" } },
+    "preferred_company_types": { "type": "array", "items": { "type": "string" } },
+    "work_preferences": { "type": "array", "items": { "type": "string" } },
+    "notable_impact": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}
