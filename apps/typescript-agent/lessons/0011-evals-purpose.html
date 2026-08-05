@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lesson 11: Why Evals Matter</title>
+    <link rel="stylesheet" href="../assets/course.css" />
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Lesson 11</p>
+      <h1>Why Evals Matter</h1>
+      <p class="lede">Evals turn "this agent seems better" into "this agent won on the cases we care about."</p>
+
+      <section class="card">
+        <h2>Where We Are</h2>
+        <p>Lesson <a href="./0009-step-evaluation.html">9</a> taught the runtime to judge one step. Lesson <a href="./0011-evals-purpose.html">11</a> widens the lens: evals judge the whole agent across many cases.</p>
+      </section>
+
+      <section class="card">
+        <h2>What Evals Are For</h2>
+        <p>Evals are repeatable tests for agent behavior. They answer a practical question: did a change make the agent better, worse, or merely different?</p>
+        <ul>
+          <li>catch regressions before users do</li>
+          <li>compare prompt, tool, or ranking changes</li>
+          <li>measure quality on a fixed set of cases</li>
+          <li>make improvement decisions evidence-based</li>
+        </ul>
+      </section>
+
+      <section class="card">
+        <h2>How Evals Help The Agent</h2>
+        <pre>change code
+   ↓
+run the same test set
+   ↓
+compare scores and failures
+   ↓
+keep the change or roll it back</pre>
+        <p>This helps the agent because improvement stops being a guess. The runtime can evolve without silently breaking search quality, ranking quality, or answer quality.</p>
+      </section>
+
+      <section class="card">
+        <h2>Simple Mental Model</h2>
+        <div class="grid two">
+          <div class="card">
+            <h3>Runtime step evaluation</h3>
+            <p>Looks at one action inside one run and asks whether the step was useful.</p>
+          </div>
+          <div class="card">
+            <h3>Offline evals</h3>
+            <p>Looks at many fixed examples and asks whether the whole system is improving over time.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>What To Remember</h2>
+        <ul>
+          <li>step evaluation helps the loop decide what to do next</li>
+          <li>evals help the team decide what to ship next</li>
+          <li>both are feedback, but they operate at different scales</li>
+        </ul>
+      </section>
+
+      <section class="card quiz">
+        <h2>Retrieval Practice</h2>
+        <ol>
+          <li>Why are evals better than gut feel?</li>
+          <li>What do evals compare across runs?</li>
+          <li>How is eval scope different from step evaluation?</li>
+        </ol>
+      </section>
+
+      <section class="card prompt">
+        <h2>Action</h2>
+        <p>Read the <a href="../reference/evals-reference.html">Evals reference</a>, then ask me to help design one eval for the GitHub opportunity finder.</p>
+      </section>
+
+      <section class="card">
+        <h2>Primary Source</h2>
+        <p>Use the <a href="https://platform.openai.com/docs/api-reference/evals">OpenAI Evals API reference</a> to see how evals are defined and run in the platform.</p>
+      </section>
+
+      <section class="card">
+        <h2>Ask Follow-Ups</h2>
+        <p>Ask me to compare evals with tests, traces, or step evaluation if the boundary still feels fuzzy.</p>
+      </section>
+    </main>
+  </body>
+</html>
