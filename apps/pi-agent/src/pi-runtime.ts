@@ -1,8 +1,7 @@
-import { stream } from "@earendil-works/pi-ai/compat";
-import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 import type { Context } from "@earendil-works/pi-ai";
 import type { OpportunityProfile } from "./profile.js";
 import type { RankedOpportunity } from "./domain.js";
+import { createCodexModels } from "./auth.js";
 
 export async function streamRecommendation(
   profile: OpportunityProfile,
@@ -21,7 +20,10 @@ export async function streamRecommendation(
     ],
   };
   let output = "";
-  for await (const event of stream(getBuiltinModel("openai", "gpt-4o-mini"), context)) {
+  const models = createCodexModels();
+  const model = models.getModel("openai-codex", "gpt-5.4-mini");
+  if (!model) throw new Error("OpenAI Codex model is unavailable.");
+  for await (const event of models.stream(model, context, { reasoningEffort: "low" })) {
     if (event.type === "text_delta") {
       output += event.delta;
       process.stdout.write(event.delta);

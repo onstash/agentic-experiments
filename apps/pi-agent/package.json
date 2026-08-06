@@ -9,7 +9,8 @@
     "test": "tsx --test tests/**/*.test.ts",
     "eval": "tsx src/run-evals.ts",
     "run-profile": "tsx src/cli.ts",
-    "run-agent": "tsx src/cli.ts"
+    "run-agent": "tsx src/cli.ts",
+    "auth:login": "tsx src/cli.ts auth:login"
   },
   "dependencies": {
     "@earendil-works/pi-ai": "latest"

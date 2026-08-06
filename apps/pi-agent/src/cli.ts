@@ -3,10 +3,15 @@ import { searchGithub } from "./github.js";
 import { rank } from "./domain.js";
 import { streamRecommendation } from "./pi-runtime.js";
 import { checkEnv } from "./env.js";
+import { loginCodex } from "./auth.js";
 
 async function main() {
   checkEnv();
   const args = process.argv.slice(2);
+  if (args[0] === "auth:login") {
+    await loginCodex();
+    return;
+  }
   const fileIndex = args.indexOf("--profile");
   const jsonIndex = args.indexOf("--profile-json");
   const profile =
