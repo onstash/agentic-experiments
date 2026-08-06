@@ -1,0 +1,11 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: oxlint
+      run: apps/pi-agent/node_modules/.bin/oxlint {staged_files}
+      glob: "apps/pi-agent/**/*.{js,ts,jsx,tsx}"
+
+    - name: oxfmt
+      run: apps/pi-agent/node_modules/.bin/oxfmt {staged_files}
+      glob: "apps/pi-agent/**/*.{js,ts,jsx,tsx,json}"
+      stage_fixed: true
