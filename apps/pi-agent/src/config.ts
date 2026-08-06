@@ -1,7 +1,6 @@
-import { getDefaultModel } from "../../typescript-agent/src/models/default-model.js";
-
 export const piAgentConfig = {
-  model: getDefaultModel(),
+  model: { provider: "openai", name: "gpt-4o-mini" },
   maxIterations: 3,
-  systemPrompt: "Find and rank GitHub open-source and job opportunities. Explain every recommendation.",
+  systemPrompt:
+    "Find and rank GitHub open-source and job opportunities. Explain every recommendation.",
 };

@@ -1,9 +1,8 @@
 # Pi agent setup
 
-`apps/pi-agent` is the dedicated setup, evaluation, and test package for the
-GitHub opportunity agent. It uses the existing source adapters and runtime in
-`apps/typescript-agent` while keeping Pi configuration and quality checks in one
-place.
+`apps/pi-agent` is a self-contained setup, evaluation, and test package for the
+GitHub opportunity agent. It owns profile validation, GitHub search, ranking,
+and quality checks.
 
 ```bash
 cd apps/pi-agent
@@ -29,6 +28,5 @@ and `target_roles`. Additional profile fields are optional and preserved.
 The current evals are deterministic unit-level checks. Add recorded GitHub
 fixtures before adding network-dependent evals so results stay reproducible.
 
-The Pi AI dependency is declared in this package for the next runtime step. The
-current adapter remains deterministic and inspectable; model streaming can be
-introduced without changing the source normalization or ranking boundary.
+The Pi AI dependency is declared in this package for the model-streaming runtime
+step. Search and ranking remain deterministic and inspectable.

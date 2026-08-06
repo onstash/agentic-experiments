@@ -2,7 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "GitHub Opportunity Agent Profile",
   "type": "object",
-  "required": ["name", "profile", "experience_years", "primary_skills", "interests", "target_roles"],
+  "required": [
+    "name",
+    "profile",
+    "experience_years",
+    "primary_skills",
+    "interests",
+    "target_roles"
+  ],
   "properties": {
     "name": { "type": "string", "minLength": 1 },
     "profile": { "type": "string", "minLength": 1 },
