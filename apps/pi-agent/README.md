@@ -19,7 +19,11 @@ Profiles can be supplied as a file or inline JSON:
 pnpm run-profile -- --profile ./profile.json
 pnpm run-profile -- --profile-json '{"name":"Santosh","profile":"AI-native product engineer","experience_years":11,"primary_skills":["Python","React"],"interests":["Agents"],"target_roles":["Principal Engineer"]}'
 pnpm run-profile -- --profile ./profile.json --query "AI developer tools jobs"
+pnpm run-agent -- --profile ./profile.json --query "AI developer tools jobs" --stream
 ```
+
+The repository includes a starter profile at `profile.json`. Copy it or replace
+it with your own profile using the documented schema.
 
 The accepted schema is [profile.schema.json](./profile.schema.json). Validation
 requires `name`, `profile`, `experience_years`, `primary_skills`, `interests`,
@@ -30,3 +34,7 @@ fixtures before adding network-dependent evals so results stay reproducible.
 
 The Pi AI dependency is declared in this package for the model-streaming runtime
 step. Search and ranking remain deterministic and inspectable.
+
+Add `--stream` to send ranked opportunities to `gpt-4o-mini` through Pi AI. Set
+`OPENAI_API_KEY` before using streaming mode. Without `--stream`, the CLI prints
+deterministic JSON and does not require an OpenAI key.

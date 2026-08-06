@@ -1,8 +1,11 @@
 import { loadProfile, parseProfileJson } from "./profile.js";
 import { searchGithub } from "./github.js";
 import { rank } from "./domain.js";
+import { streamRecommendation } from "./pi-runtime.js";
+import { checkEnv } from "./env.js";
 
 async function main() {
+  checkEnv();
   const args = process.argv.slice(2);
   const fileIndex = args.indexOf("--profile");
   const jsonIndex = args.indexOf("--profile-json");
@@ -15,15 +18,11 @@ async function main() {
   if (profile) {
     const queryIndex = args.indexOf("--query");
     const query = queryIndex >= 0 ? args[queryIndex + 1] : undefined;
-    if (query)
-      console.log(
-        JSON.stringify(
-          { query, opportunities: rank(await searchGithub(query), profile).slice(0, 20) },
-          null,
-          2,
-        ),
-      );
-    else console.log(JSON.stringify(profile, null, 2));
+    if (query) {
+      const opportunities = rank(await searchGithub(query), profile).slice(0, 20);
+      if (args.includes("--stream")) await streamRecommendation(profile, query, opportunities);
+      else console.log(JSON.stringify({ query, opportunities }, null, 2));
+    } else console.log(JSON.stringify(profile, null, 2));
     return;
   }
   throw new Error("Provide --profile path/to/profile.json or --profile-json '{...}'.");

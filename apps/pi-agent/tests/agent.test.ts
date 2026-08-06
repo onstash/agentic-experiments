@@ -3,6 +3,8 @@ import test from "node:test";
 import { piAgentConfig } from "../src/config.js";
 import { evalCases, evaluateCase } from "../src/evals.js";
 import { parseProfileJson, validateProfile } from "../src/profile.js";
+import { rank } from "../src/domain.js";
+import { checkEnv } from "../src/env.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -48,4 +50,42 @@ test("invalid profile JSON reports schema errors", () => {
   const result = validateProfile({ name: "", primary_skills: "Python" });
   assert.equal(result.valid, false);
   if (!result.valid) assert.ok(result.errors.some((error) => error.includes("primary_skills")));
+});
+
+test("local ranking returns profile matches first", () => {
+  const ranked = rank(
+    [
+      {
+        kind: "job",
+        title: "Python Agent Engineer",
+        url: "https://example.com/1",
+        organization: "A",
+        summary: "Build agents",
+        topics: [],
+        updatedAt: new Date().toISOString(),
+        source: "fixture",
+      },
+      {
+        kind: "job",
+        title: "Sales Manager",
+        url: "https://example.com/2",
+        organization: "B",
+        summary: "Sell software",
+        topics: [],
+        updatedAt: new Date().toISOString(),
+        source: "fixture",
+      },
+    ],
+    { skills: ["Python"], interests: ["Agents"], targetRoles: ["Engineer"] },
+  );
+  assert.equal(ranked[0].title, "Python Agent Engineer");
+});
+
+test("checkEnv accepts omitted optional variables", () => {
+  checkEnv({});
+});
+
+test("checkEnv rejects blank credentials", () => {
+  assert.throws(() => checkEnv({ GITHUB_TOKEN: "  " }), /GITHUB_TOKEN must not be empty/);
+  assert.throws(() => checkEnv({ OPENAI_API_KEY: "" }), /OPENAI_API_KEY must not be empty/);
 });
