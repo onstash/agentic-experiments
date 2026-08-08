@@ -5,6 +5,11 @@ type Issue = {
   body: string | null;
   html_url: string;
   repository_url: string;
+  number: number;
+  state: "open" | "closed";
+  comments: number;
+  user?: { author_association?: string };
+  created_at?: string;
   updated_at: string;
   labels?: { name: string }[];
 };
@@ -46,10 +51,22 @@ function toOpportunity(issue: Issue, kind: "oss" | "job"): Opportunity {
     kind,
     title: issue.title,
     url: issue.html_url,
-    organization: path[0],
     summary: issue.body ?? "",
+    repository: {
+      owner: path[0],
+      name: path[1],
+      url: `https://github.com/${path[0]}/${path[1]}`,
+    },
+    issue: {
+      number: issue.number,
+      state: issue.state,
+      labels,
+      comments: issue.comments,
+      authorAssociation: issue.user?.author_association,
+    },
     topics: labels,
     updatedAt: issue.updated_at,
-    source: "github",
+    createdAt: issue.created_at,
+    source: "github_issue",
   };
 }

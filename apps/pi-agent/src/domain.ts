@@ -1,14 +1,27 @@
 export type OpportunityKind = "oss" | "job";
+export type OpportunitySource = "github_issue" | "github_discussion" | "job_board";
 export type Opportunity = {
   kind: OpportunityKind;
   title: string;
   url: string;
-  organization: string;
   summary: string;
+  repository: {
+    owner: string;
+    name: string;
+    url: string;
+    stars?: number;
+  };
+  issue?: {
+    number: number;
+    state: "open" | "closed";
+    labels: string[];
+    comments: number;
+    authorAssociation?: string;
+  };
   topics: string[];
   updatedAt: string;
-  source: string;
-  stars?: number;
+  createdAt?: string;
+  source: OpportunitySource;
 };
 export type RankedOpportunity = Opportunity & {
   score: number;
@@ -27,7 +40,8 @@ export function rank(
         [
           opportunity.title,
           opportunity.summary,
-          opportunity.organization,
+          opportunity.repository.owner,
+          opportunity.repository.name,
           ...opportunity.topics,
         ].join(" "),
       );
@@ -37,7 +51,11 @@ export function rank(
         10,
         matchedSkills.length * 1.5 +
           freshness +
-          (opportunity.kind === "oss" && opportunity.stars && opportunity.stars > 1000 ? 1 : 0),
+          (opportunity.kind === "oss" &&
+          opportunity.repository.stars &&
+          opportunity.repository.stars > 1000
+            ? 1
+            : 0),
       );
       return {
         ...opportunity,
