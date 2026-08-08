@@ -161,3 +161,33 @@ Remaining concerns include:
 - ensure empty results with remaining tools mean `useful: false` and
   `shouldContinue: true`
 - preserve tool/result typing when emitting `tool_executed`
+
+## 2026-08-08
+
+### Mistake: modifying `typescript-agent` while focused on `pi-agent`
+
+We changed files under `apps/typescript-agent/` while the active learning and
+implementation focus was `apps/pi-agent/`.
+
+### RCA
+
+- The repository contains two similarly named TypeScript agent applications.
+- The active focus was not re-checked against the handoff and project memory
+  before planning the change.
+- A prior suggestion about improving issue-level search was treated as the
+  current implementation target without confirming the target app.
+- The change also introduced fixture data before establishing the intended
+  scope and data model.
+
+### Fixes
+
+- Treat `apps/pi-agent/` as the active application unless the user explicitly
+  names another app.
+- Before editing, inspect `MEMORY.md`, the relevant `AGENTS.md`, and the
+  handoff, then state the exact files and app in scope.
+- Do not edit a similarly named app based on inference. Ask when the target is
+  ambiguous.
+- Keep changes limited to the requested scope; do not add illustrative or
+  fabricated fixture data unless explicitly requested.
+- After editing, verify `git diff --stat` and `git status` for accidental
+  changes outside the active app.
