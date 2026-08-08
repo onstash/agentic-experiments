@@ -74,10 +74,11 @@ export async function runAgenticOpportunitySearch(
     emit({ step: "rank", status: "started", iteration, count: found.length });
     ranked = dependencies.rank(found, profile, queries.map((item) => item.query).join(" "));
     emit({ step: "rank", status: "completed", iteration, count: ranked.length });
-    const actionable = ranked.filter((item) => item.quality === "actionable").length;
-    if (actionable >= 3 || index === queries.length - 1) {
-      const reason = actionable >= 3 ? "Enough actionable opportunities found." : "Query limit reached.";
-      emit({ step: "stop", status: "completed", iteration, count: actionable, reason });
+    const actionable = ranked.filter((item) => item.quality === "actionable");
+    const repositories = new Set(actionable.map((item) => `${item.repository.owner}/${item.repository.name}`));
+    if ((actionable.length >= 3 && repositories.size >= 2) || index === queries.length - 1) {
+      const reason = actionable.length >= 3 && repositories.size >= 2 ? "Enough actionable opportunities found." : "Query limit reached.";
+      emit({ step: "stop", status: "completed", iteration, count: actionable.length, reason });
       break;
     }
   }

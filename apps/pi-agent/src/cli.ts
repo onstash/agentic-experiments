@@ -41,7 +41,19 @@ async function main() {
         const { session } = await createPersistentPiSession();
         try { return await streamRecommendation(currentProfile, currentQuery, opportunities, session); } finally { session.dispose(); }
       } : undefined,
-    }, { maxQueries: maxIterations, onEvent: (event) => void log(event) });
+    }, {
+      maxQueries: maxIterations,
+      onEvent: (event) => {
+        void log(event);
+        if (!args.includes("--stream")) return;
+        if (event.step === "plan" && event.status === "completed") console.log(`Planning ${event.count} queries...`);
+        if (event.step === "search" && event.status === "started") console.log(`Searching query ${event.iteration}...`);
+        if (event.step === "search" && event.status === "completed") console.log(`Found ${event.count} results.`);
+        if (event.step === "rank" && event.status === "completed") console.log(`Ranked ${event.count} opportunities.`);
+        if (event.step === "recommend" && event.status === "started") console.log("Generating recommendation...");
+        if (event.step === "recommend" && event.status === "completed") console.log("Recommendation validated.");
+      },
+    });
     if (args.includes("--json")) console.log(JSON.stringify({ queries: result.queries, opportunities: result.opportunities }, null, 2));
     else {
       console.log(`Query plan: ${result.queries.map((item) => item.query).join(" | ")}`);

@@ -331,9 +331,9 @@ test("agentic search derives prioritized queries and stops after enough actionab
     },
     rank: (opportunities, currentProfile, currentQuery) => rank(opportunities, currentProfile, currentQuery),
   }, { maxQueries: 3 });
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 3);
   assert.equal(result.queries[0].priority, 1);
-  assert.equal(result.opportunities.length, 3);
+  assert.equal(result.opportunities.length, 9);
   assert.ok(result.events.some((event) => event.step === "stop"));
 });
 
@@ -382,14 +382,15 @@ test("model input redacts credential fields and URL secrets", () => {
 
 test("recommendation output cites only supplied URLs", () => {
   const opportunity = { kind: "oss" as const, title: "Issue", url: "https://example.com/1", summary: "Fix", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
-  const valid = JSON.stringify({ summary: "A focused contribution.", recommendations: [{ url: opportunity.url, title: opportunity.title, evidence: ["Fix"], nextAction: "Read the issue." }] });
+  const opportunityId = "a/r#https://example.com/1";
+  const valid = JSON.stringify({ summary: "A focused contribution.", recommendations: [{ opportunityId, url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "Fix" }], nextAction: "Read the issue." }] });
   assert.equal(validateRecommendationOutput(valid, [opportunity]).recommendations.length, 1);
-  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [{ url: "https://evil.example/2", title: opportunity.title, evidence: ["Fix"], nextAction: "Read it." }] }), [opportunity]), /URL that was not supplied/);
+  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [{ opportunityId, url: "https://evil.example/2", title: opportunity.title, evidence: [{ field: "summary", value: "Fix" }], nextAction: "Read it." }] }), [opportunity]), /URL that was not supplied/);
 });
 
 test("recommendation validation rejects unsupported claims", () => {
   const opportunity = { kind: "oss" as const, title: "Fix docs", url: "https://example.com/1", summary: "Update the example", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
-  const output = JSON.stringify({ summary: "", recommendations: [{ url: opportunity.url, title: opportunity.title, evidence: ["This creates a paid role"], nextAction: "Apply." }] });
+  const output = JSON.stringify({ summary: "", recommendations: [{ opportunityId: "a/r#https://example.com/1", url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "This creates a paid role" }], nextAction: "Apply." }] });
   assert.throws(() => validateRecommendationOutput(output, [opportunity]), /evidence that was not supplied/);
 });
 
@@ -400,10 +401,10 @@ test("invalid streamed recommendations do not print to stdout", async () => {
   process.stdout.write = ((chunk: string | Uint8Array) => { writes.push(String(chunk)); return true; }) as typeof process.stdout.write;
   const session = {
     subscribe: (callback: (event: unknown) => void) => {
-      callback({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: JSON.stringify({ summary: "", recommendations: [{ url: "https://evil.example/2", title: "Issue", evidence: ["Fix"], nextAction: "Read it." }] }) } });
+      (session as { callback?: (event: unknown) => void }).callback = callback;
       return () => undefined;
     },
-    prompt: async () => undefined,
+    prompt: async () => (session as { callback?: (event: unknown) => void }).callback?.({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: JSON.stringify({ summary: "", recommendations: [{ opportunityId: "a/r#https://example.com/1", url: "https://evil.example/2", title: "Issue", evidence: [{ field: "summary", value: "Fix" }], nextAction: "Read it." }] }) } }),
   };
   try {
     await assert.rejects(streamRecommendation(parseProfileJson(JSON.stringify({ name: "Test", profile: "Engineer", experience_years: 1, primary_skills: [], interests: [], target_roles: [] })), "query", [opportunity], session as never), /URL that was not supplied/);

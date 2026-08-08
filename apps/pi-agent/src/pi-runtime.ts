@@ -7,9 +7,10 @@ const SENSITIVE_KEY = /(authorization|api[_-]?key|access[_-]?token|refresh[_-]?t
 
 export type RecommendationDocument = {
   recommendations: Array<{
+    opportunityId: string;
     url: string;
     title: string;
-    evidence: string[];
+    evidence: Array<{ field: string; value: string }>;
     nextAction: string;
   }>;
   summary: string;
@@ -20,7 +21,8 @@ const RecommendationSchema = object({
   recommendations: array(object({
     url: string(),
     title: string(),
-    evidence: array(string()),
+  opportunityId: string(),
+  evidence: array(object({ field: string(), value: string() })),
     nextAction: string(),
   })),
 });
@@ -57,14 +59,29 @@ export function buildRecommendationPrompt(
     "Do not invent opportunities, facts, scores, links, or user preferences.",
     "Recommend only opportunities that have evidence in the payload.",
     "Return only valid JSON. Do not use Markdown fences.",
-    'Use this shape: {"summary":"...","recommendations":[{"url":"...","title":"...","evidence":["..."],"nextAction":"..."}]}',
+    'Use this shape: {"summary":"...","recommendations":[{"opportunityId":"...","url":"...","title":"...","evidence":[{"field":"...","value":"..."}],"nextAction":"..."}]}',
     "For each recommendation, use its exact URL and title from the payload.",
     "Use only URLs from the opportunities.url fields. The allowed URL list is provided in the payload.",
     "Do not convert repository URLs, job-feed text, or issue descriptions into job URLs.",
     "If the payload does not support a claim, say that the evidence is insufficient.",
     "Use evidence strings copied from supplied fields. Do not add facts.",
     "JSON payload:",
-    JSON.stringify(redactSensitiveData({ query, profile, opportunities })),
+    JSON.stringify(redactSensitiveData({
+      query,
+      profile,
+      opportunities: opportunities.map((opportunity) => ({
+        opportunityId: opportunityId(opportunity),
+        url: opportunity.url,
+        title: opportunity.title,
+        summary: opportunity.summary.replace(/https?:\/\/[^\s)<>]+/g, "[source link omitted]").slice(0, 500),
+        repository: opportunity.repository,
+        labels: opportunity.issue?.labels ?? [],
+        quality: opportunity.quality,
+        qualityReasons: opportunity.qualityReasons,
+        matchedSkills: opportunity.matchedSkills,
+        reasons: opportunity.reasons,
+      })),
+    })),
   ].join("\n");
 }
 
@@ -81,13 +98,30 @@ export async function streamRecommendation(
     output += event.assistantMessageEvent.delta;
   });
   try {
-    await session.prompt(buildRecommendationPrompt(profile, query, opportunities));
+    let lastError = "";
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      output = "";
+      const prompt = attempt === 1
+        ? buildRecommendationPrompt(profile, query, opportunities)
+        : `${buildRecommendationPrompt(profile, query, opportunities)}\nThe previous response failed validation: ${lastError}\nReturn a corrected JSON document. Use exact supplied opportunity IDs, URLs, titles, and field evidence.`;
+      await session.prompt(prompt);
+      try {
+        const document = validateRecommendationOutput(output, opportunities);
+        process.stdout.write(`${JSON.stringify(document, null, 2)}\n`);
+        return output;
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : "Unknown validation error.";
+        if (attempt === 2) throw error;
+      }
+    }
+    throw new Error("Recommendation failed after bounded repair.");
   } finally {
     unsubscribe();
   }
-  const document = validateRecommendationOutput(output, opportunities);
-  process.stdout.write(`${JSON.stringify(document, null, 2)}\n`);
-  return output;
+}
+
+function opportunityId(opportunity: RankedOpportunity): string {
+  return `${opportunity.repository.owner}/${opportunity.repository.name}#${opportunity.issue?.number ?? opportunity.url}`;
 }
 
 export function validateRecommendationOutput(output: string, opportunities: RankedOpportunity[]): RecommendationDocument {
@@ -107,10 +141,21 @@ export function validateRecommendationOutput(output: string, opportunities: Rank
   for (const item of recommendation.recommendations) {
     const opportunity = byUrl.get(item.url);
     if (!opportunity) throw new Error("Recommendation included a URL that was not supplied by the deterministic pipeline.");
+    if (item.opportunityId !== opportunityId(opportunity)) throw new Error("Recommendation opportunity ID did not match the supplied opportunity.");
     if (opportunity.quality !== "actionable") throw new Error("Recommendation included an opportunity that is not actionable.");
     if (item.title !== opportunity.title) throw new Error("Recommendation title did not match the supplied opportunity.");
-    const source = JSON.stringify(opportunity).toLowerCase();
-    if (!item.evidence.length || item.evidence.some((evidence) => !source.includes(evidence.toLowerCase())))
+    const source = {
+      matchedSkills: opportunity.matchedSkills,
+      reasons: opportunity.reasons,
+      qualityReasons: opportunity.qualityReasons,
+      labels: opportunity.issue?.labels ?? [],
+      title: opportunity.title,
+      summary: opportunity.summary,
+    } as Record<string, string | string[]>;
+    if (!item.evidence.length || item.evidence.some((evidence) => {
+      const value = source[evidence.field];
+      return typeof value === "undefined" || !(Array.isArray(value) ? value : [value]).some((entry) => entry.toLowerCase() === evidence.value.toLowerCase());
+    }))
       throw new Error("Recommendation included evidence that was not supplied by the deterministic pipeline.");
   }
   if (opportunities.length > 0 && recommendation.recommendations.length === 0)
