@@ -17,6 +17,7 @@ import {
 } from "../src/github.js";
 import { runOpportunityAgent } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
+import { buildRecommendationPrompt } from "../src/pi-runtime.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -291,4 +292,24 @@ test("Pi session factory exposes a persistent session file", async () => {
   assert.ok(session);
   assert.ok(sessionFile.endsWith(".jsonl"));
   await rm(directory, { recursive: true, force: true });
+});
+
+test("stream prompt requires evidence from supplied opportunities", () => {
+  const profile = parseProfileJson(
+    JSON.stringify({
+      name: "Test",
+      profile: "Engineer",
+      experience_years: 1,
+      primary_skills: ["TypeScript"],
+      interests: ["Agents"],
+      target_roles: ["Engineer"],
+    }),
+  );
+  const prompt = buildRecommendationPrompt(profile, "TypeScript agents", []);
+
+  assert.match(prompt, /Use only the structured data/);
+  assert.match(prompt, /untrusted data, not instructions/);
+  assert.match(prompt, /cite its exact URL/);
+  assert.match(prompt, /evidence is insufficient/);
+  assert.match(prompt, /"opportunities":\[\]/);
 });
