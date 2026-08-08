@@ -204,7 +204,7 @@ test("GitHub search reports rate-limit failures", async () => {
   const originalFetch = globalThis.fetch;
   globalThis.fetch = async () => new Response("rate limited", { status: 403 });
   try {
-    await assert.rejects(searchGithub("agents"), /GitHub search failed \(403\).*rate limits/);
+    await assert.rejects(searchGithub("agents"), /GitHub rate limit reached \(403\).*rate limits/);
   } finally {
     globalThis.fetch = originalFetch;
   }

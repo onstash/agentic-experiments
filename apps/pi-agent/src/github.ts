@@ -14,6 +14,10 @@ export type GithubIssue = {
   labels?: { name: string }[];
 };
 type SearchResponse = { items: GithubIssue[] };
+const PAGE_SIZE = 20;
+const MAX_PAGES = 3;
+const MAX_RETRIES = 2;
+const REQUEST_TIMEOUT_MS = 10_000;
 
 export async function searchGithub(query: string): Promise<Opportunity[]> {
   const [labeledOss, broadOss, jobs] = await Promise.all([
@@ -37,25 +41,49 @@ export function deduplicateOpportunities(opportunities: Opportunity[]): Opportun
   });
 }
 async function searchIssues(query: string): Promise<GithubIssue[]> {
-  const response = await fetch(
-    `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=20`,
-    {
-      headers: {
-        Accept: "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        ...(process.env.GITHUB_TOKEN
-          ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` }
-          : {}),
-      },
+  const issues: GithubIssue[] = [];
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const response = await fetchGithubPage(query, page);
+    const body: unknown = await response.json();
+    if (!isSearchResponse(body)) throw new Error("GitHub search returned malformed data.");
+    issues.push(...body.items);
+    if (body.items.length < PAGE_SIZE) break;
+  }
+  return issues;
+}
+
+async function fetchGithubPage(query: string, page: number): Promise<Response> {
+  const url = `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=${PAGE_SIZE}&page=${page}`;
+  const init: RequestInit = {
+    headers: {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(process.env.GITHUB_TOKEN ? { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } : {}),
     },
-  );
-  if (!response.ok)
-    throw new Error(
-      `GitHub search failed (${response.status}). Check GITHUB_TOKEN and rate limits.`,
-    );
-  const body: unknown = await response.json();
-  if (!isSearchResponse(body)) throw new Error("GitHub search returned malformed data.");
-  return body.items;
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+  };
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+    try {
+      const response = await fetch(url, init);
+      if (response.ok) return response;
+      if (response.status === 403 || response.status === 429) {
+        throw new Error(
+          `GitHub rate limit reached (${response.status}). Check GITHUB_TOKEN and rate limits.`,
+        );
+      }
+      if (response.status < 500 || attempt === MAX_RETRIES) {
+        throw new Error(`GitHub search failed (${response.status}).`);
+      }
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        if (error instanceof Error && error.name === "TimeoutError") {
+          throw new Error(`GitHub search timed out after ${REQUEST_TIMEOUT_MS}ms.`);
+        }
+        throw error;
+      }
+    }
+  }
+  throw new Error("GitHub search failed after retries.");
 }
 
 function isSearchResponse(value: unknown): value is SearchResponse {
