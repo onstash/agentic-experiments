@@ -1,7 +1,7 @@
 import type { OpportunityProfile } from "./profile.js";
 import type { RankedOpportunity } from "./domain.js";
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
-import { array, object, parse, string } from "valibot";
+import { array, object, parse, picklist, string } from "valibot";
 
 const SENSITIVE_KEY = /(authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|client[_-]?secret|password|secret|credential)/i;
 
@@ -11,6 +11,7 @@ export type RecommendationDocument = {
     url: string;
     title: string;
     evidence: Array<{ field: string; value: string }>;
+    actionType: "inspect" | "contribute" | "apply";
     nextAction: string;
   }>;
   summary: string;
@@ -21,8 +22,9 @@ const RecommendationSchema = object({
   recommendations: array(object({
     url: string(),
     title: string(),
-  opportunityId: string(),
-  evidence: array(object({ field: string(), value: string() })),
+    opportunityId: string(),
+    evidence: array(object({ field: string(), value: string() })),
+    actionType: picklist(["inspect", "contribute", "apply"]),
     nextAction: string(),
   })),
 });
@@ -59,7 +61,7 @@ export function buildRecommendationPrompt(
     "Do not invent opportunities, facts, scores, links, or user preferences.",
     "Recommend only opportunities that have evidence in the payload.",
     "Return only valid JSON. Do not use Markdown fences.",
-    'Use this shape: {"summary":"...","recommendations":[{"opportunityId":"...","url":"...","title":"...","evidence":[{"field":"...","value":"..."}],"nextAction":"..."}]}',
+    'Use this shape: {"summary":"...","recommendations":[{"opportunityId":"...","url":"...","title":"...","evidence":[{"field":"...","value":"..."}],"actionType":"inspect|contribute|apply","nextAction":"..."}]}',
     "For each recommendation, use its exact URL and title from the payload.",
     "Use only URLs from the opportunities.url fields. The allowed URL list is provided in the payload.",
     "Do not convert repository URLs, job-feed text, or issue descriptions into job URLs.",
@@ -78,6 +80,7 @@ export function buildRecommendationPrompt(
         labels: opportunity.issue?.labels ?? [],
         quality: opportunity.quality,
         qualityReasons: opportunity.qualityReasons,
+        source: opportunity.source,
         matchedSkills: opportunity.matchedSkills,
         reasons: opportunity.reasons,
       })),
@@ -138,11 +141,18 @@ export function validateRecommendationOutput(output: string, opportunities: Rank
     throw new Error("Recommendation did not match the required JSON schema.");
   }
   const byUrl = new Map(opportunities.map((opportunity) => [opportunity.url, opportunity]));
+  const recommendationIds = new Set<string>();
   for (const item of recommendation.recommendations) {
     const opportunity = byUrl.get(item.url);
     if (!opportunity) throw new Error("Recommendation included a URL that was not supplied by the deterministic pipeline.");
     if (item.opportunityId !== opportunityId(opportunity)) throw new Error("Recommendation opportunity ID did not match the supplied opportunity.");
+    if (recommendationIds.has(item.opportunityId)) throw new Error("Recommendation included the same opportunity more than once.");
+    recommendationIds.add(item.opportunityId);
     if (opportunity.quality !== "actionable") throw new Error("Recommendation included an opportunity that is not actionable.");
+    if (item.actionType === "apply" && opportunity.source !== "direct_job") throw new Error("Apply action requires a verified direct job source.");
+    if (item.actionType === "contribute" && opportunity.kind !== "oss") throw new Error("Contribute action requires an open-source opportunity.");
+    if (item.actionType === "contribute" && !/issue|pull request|contribut|fix|review|read/i.test(item.nextAction)) throw new Error("Contribute action next action did not match the action type.");
+    if (item.actionType === "apply" && !/apply|application|career|job/i.test(item.nextAction)) throw new Error("Apply action next action did not match the action type.");
     if (item.title !== opportunity.title) throw new Error("Recommendation title did not match the supplied opportunity.");
     const source = {
       matchedSkills: opportunity.matchedSkills,
@@ -158,7 +168,8 @@ export function validateRecommendationOutput(output: string, opportunities: Rank
     }))
       throw new Error("Recommendation included evidence that was not supplied by the deterministic pipeline.");
   }
-  if (opportunities.length > 0 && recommendation.recommendations.length === 0)
+  const actionableCount = opportunities.filter((opportunity) => opportunity.quality === "actionable").length;
+  if (actionableCount > 0 && recommendation.recommendations.length === 0)
     throw new Error("Recommendation did not include a supplied actionable opportunity.");
   return recommendation;
 }

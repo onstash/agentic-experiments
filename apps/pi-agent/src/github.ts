@@ -1,4 +1,4 @@
-import type { Opportunity } from "./domain.js";
+import { isJobAggregationText, type Opportunity } from "./domain.js";
 
 export type GithubIssue = {
   title: string;
@@ -128,6 +128,18 @@ export function toOpportunity(issue: GithubIssue, kind: "oss" | "job"): Opportun
     topics: labels,
     updatedAt: issue.updated_at,
     createdAt: issue.created_at,
-    source: "github_issue",
+    source: kind === "job" && isJobAggregation(issue)
+      ? "job_aggregation"
+      : kind === "job" && isDirectJob(issue)
+        ? "direct_job"
+        : "github_issue",
   };
+}
+function isJobAggregation(issue: GithubIssue): boolean {
+  return isJobAggregationText(`${issue.title} ${issue.body ?? ""}`);
+}
+function isDirectJob(issue: GithubIssue): boolean {
+  return /https?:\/\/(?:[^\s/]+\.)?(?:greenhouse\.io|jobs\.ashbyhq\.com|lever\.co|workday(?:jobs)?\.com|myworkdayjobs\.com)\//i.test(
+    issue.body ?? "",
+  );
 }

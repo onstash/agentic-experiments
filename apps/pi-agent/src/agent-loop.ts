@@ -60,21 +60,26 @@ export async function runAgenticOpportunitySearch(
 ): Promise<AgenticRunResult> {
   if (!Number.isInteger(options.maxQueries) || options.maxQueries < 1) throw new Error("maxQueries must be a positive integer.");
   const queries = query?.trim() ? [{ priority: 1, query: query.trim(), reason: "User supplied query." }] : deriveQueries(profile, options.maxQueries);
+  const queryTexts = queries.map((item) => item.query);
+  const rankingQuery = queryTexts.join(" ");
+  const recommendationQuery = queryTexts.join("; ");
   const events: AgenticRunEvent[] = [];
   const emit = (event: AgenticRunEvent) => { events.push(event); options.onEvent?.(event); };
   emit({ step: "plan", status: "started", iteration: 0, count: queries.length });
   emit({ step: "plan", status: "completed", iteration: 0, count: queries.length, reason: query ? "Using the user query." : "Derived queries from the profile." });
   const found: Opportunity[] = [];
   let ranked: RankedOpportunity[] = [];
+  let completedIteration = 0;
   for (const [index, planned] of queries.entries()) {
     const iteration = index + 1;
+    completedIteration = iteration;
     emit({ step: "search", status: "started", iteration, query: planned.query });
     found.push(...await dependencies.search(planned.query));
     emit({ step: "search", status: "completed", iteration, query: planned.query, count: found.length });
     emit({ step: "rank", status: "started", iteration, count: found.length });
-    ranked = dependencies.rank(found, profile, queries.map((item) => item.query).join(" "));
+    ranked = dependencies.rank(found, profile, rankingQuery);
     emit({ step: "rank", status: "completed", iteration, count: ranked.length });
-    const actionable = ranked.filter((item) => item.quality === "actionable");
+    const actionable = ranked.filter((item) => item.quality === "actionable" && item.source !== "job_aggregation");
     const repositories = new Set(actionable.map((item) => `${item.repository.owner}/${item.repository.name}`));
     if ((actionable.length >= 3 && repositories.size >= 2) || index === queries.length - 1) {
       const reason = actionable.length >= 3 && repositories.size >= 2 ? "Enough actionable opportunities found." : "Query limit reached.";
@@ -83,11 +88,14 @@ export async function runAgenticOpportunitySearch(
     }
   }
   const opportunities = ranked.slice(0, 20);
+  const actionableOpportunities = ranked
+    .filter((item) => item.quality === "actionable" && item.source !== "job_aggregation")
+    .slice(0, 20);
   let recommendation: string | undefined;
   if (dependencies.recommend) {
-    emit({ step: "recommend", status: "started", iteration: queries.length });
-    recommendation = await dependencies.recommend(profile, queries.map((item) => item.query).join("; "), opportunities);
-    emit({ step: "recommend", status: "completed", iteration: queries.length });
+    emit({ step: "recommend", status: "started", iteration: completedIteration });
+    recommendation = await dependencies.recommend(profile, recommendationQuery, actionableOpportunities);
+    emit({ step: "recommend", status: "completed", iteration: completedIteration });
   }
   return { queries, opportunities, recommendation, events };
 }

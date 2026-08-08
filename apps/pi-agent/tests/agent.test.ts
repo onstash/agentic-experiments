@@ -190,6 +190,20 @@ test("quality classification rejects scanner and digest records", () => {
   assert.equal(result.quality, "not_an_opportunity");
 });
 
+test("quality classification rejects job aggregation records", () => {
+  const result = classifyOpportunity({
+    kind: "job",
+    title: "🔔 766 new role(s) opened",
+    url: "https://github.com/example/repo/issues/1",
+    summary: "Master board with job listings.",
+    repository: { owner: "example", name: "repo", url: "https://github.com/example/repo" },
+    topics: [],
+    updatedAt: new Date().toISOString(),
+    source: "job_aggregation",
+  });
+  assert.equal(result.quality, "not_an_opportunity");
+});
+
 test("checkEnv accepts omitted optional variables", () => {
   checkEnv({});
 });
@@ -383,15 +397,29 @@ test("model input redacts credential fields and URL secrets", () => {
 test("recommendation output cites only supplied URLs", () => {
   const opportunity = { kind: "oss" as const, title: "Issue", url: "https://example.com/1", summary: "Fix", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
   const opportunityId = "a/r#https://example.com/1";
-  const valid = JSON.stringify({ summary: "A focused contribution.", recommendations: [{ opportunityId, url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "Fix" }], nextAction: "Read the issue." }] });
+  const valid = JSON.stringify({ summary: "A focused contribution.", recommendations: [{ opportunityId, url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "Fix" }], actionType: "contribute", nextAction: "Read the issue." }] });
   assert.equal(validateRecommendationOutput(valid, [opportunity]).recommendations.length, 1);
-  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [{ opportunityId, url: "https://evil.example/2", title: opportunity.title, evidence: [{ field: "summary", value: "Fix" }], nextAction: "Read it." }] }), [opportunity]), /URL that was not supplied/);
+  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [{ opportunityId, url: "https://evil.example/2", title: opportunity.title, evidence: [{ field: "summary", value: "Fix" }], actionType: "contribute", nextAction: "Read it." }] }), [opportunity]), /URL that was not supplied/);
 });
 
 test("recommendation validation rejects unsupported claims", () => {
   const opportunity = { kind: "oss" as const, title: "Fix docs", url: "https://example.com/1", summary: "Update the example", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
-  const output = JSON.stringify({ summary: "", recommendations: [{ opportunityId: "a/r#https://example.com/1", url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "This creates a paid role" }], nextAction: "Apply." }] });
+  const output = JSON.stringify({ summary: "", recommendations: [{ opportunityId: "a/r#https://example.com/1", url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "This creates a paid role" }], actionType: "contribute", nextAction: "Read the issue." }] });
   assert.throws(() => validateRecommendationOutput(output, [opportunity]), /evidence that was not supplied/);
+});
+
+test("recommendation validation rejects duplicate and unverified apply actions", () => {
+  const opportunity = { kind: "job" as const, title: "Hiring engineer", url: "https://github.com/example/company/issues/1", summary: "We are hiring.", repository: { owner: "example", name: "company", url: "https://github.com/example/company" }, issue: { number: 1, state: "open" as const, labels: [], comments: 0 }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
+  const item = { opportunityId: "example/company#1", url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "We are hiring." }], actionType: "apply", nextAction: "Apply for the job." };
+  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [item] }), [opportunity]), /verified direct job source/);
+  const oss = { ...opportunity, kind: "oss" as const, title: "Fix issue", source: "github_issue" as const };
+  const duplicate = { ...item, opportunityId: "example/company#1", url: oss.url, title: oss.title, actionType: "contribute" as const, nextAction: "Read the issue." };
+  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [duplicate, duplicate] }), [oss]), /more than once/);
+});
+
+test("recommendation validation accepts no recommendations when all inputs are non-actionable", () => {
+  const stale = { kind: "oss" as const, title: "Old issue", url: "https://example.com/old", summary: "Old", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: "2020-01-01T00:00:00Z", source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "stale" as const, qualityReasons: [] };
+  assert.equal(validateRecommendationOutput(JSON.stringify({ summary: "No current opportunities.", recommendations: [] }), [stale]).recommendations.length, 0);
 });
 
 test("invalid streamed recommendations do not print to stdout", async () => {
@@ -404,7 +432,7 @@ test("invalid streamed recommendations do not print to stdout", async () => {
       (session as { callback?: (event: unknown) => void }).callback = callback;
       return () => undefined;
     },
-    prompt: async () => (session as { callback?: (event: unknown) => void }).callback?.({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: JSON.stringify({ summary: "", recommendations: [{ opportunityId: "a/r#https://example.com/1", url: "https://evil.example/2", title: "Issue", evidence: [{ field: "summary", value: "Fix" }], nextAction: "Read it." }] }) } }),
+    prompt: async () => (session as { callback?: (event: unknown) => void }).callback?.({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: JSON.stringify({ summary: "", recommendations: [{ opportunityId: "a/r#https://example.com/1", url: "https://evil.example/2", title: "Issue", evidence: [{ field: "summary", value: "Fix" }], actionType: "contribute", nextAction: "Read it." }] }) } }),
   };
   try {
     await assert.rejects(streamRecommendation(parseProfileJson(JSON.stringify({ name: "Test", profile: "Engineer", experience_years: 1, primary_skills: [], interests: [], target_roles: [] })), "query", [opportunity], session as never), /URL that was not supplied/);

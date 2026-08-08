@@ -1,5 +1,5 @@
 export type OpportunityKind = "oss" | "job";
-export type OpportunitySource = "github_issue" | "github_discussion" | "job_board";
+export type OpportunitySource = "github_issue" | "github_discussion" | "job_board" | "job_aggregation" | "direct_job";
 export type OpportunityQuality = "actionable" | "stale" | "duplicate" | "too_broad" | "blocked" | "not_an_opportunity";
 export type Opportunity = {
   kind: OpportunityKind;
@@ -42,8 +42,11 @@ export function classifyOpportunity(
   const labels = opportunity.issue?.labels.map(normalize) ?? [];
   const text = normalize(`${opportunity.title} ${opportunity.summary}`);
 
-  if (/digest|scanner|scan result|job room|job feed|automatic shortlist/.test(text)) {
-    return { quality: "not_an_opportunity", qualityReasons: ["record is a digest, scanner result, or job feed"] };
+  if (isJobAggregationText(text)) {
+    return { quality: "not_an_opportunity", qualityReasons: ["record is a digest, scanner result, or job aggregation"] };
+  }
+  if (opportunity.source === "job_aggregation") {
+    return { quality: "not_an_opportunity", qualityReasons: ["source is a job aggregation record"] };
   }
 
   if (labels.includes("duplicate") || text.includes("duplicate")) {
@@ -59,6 +62,12 @@ export function classifyOpportunity(
     return { quality: "stale", qualityReasons: ["issue has not been updated recently"] };
   }
   return { quality: "actionable", qualityReasons: ["issue is open and has a current task"] };
+}
+
+export function isJobAggregationText(value: string): boolean {
+  return /digest|scanner|scan result|job room|job feed|automatic shortlist|new roles? opened|job radar|master board|career page postings?|job listings?/.test(
+    normalize(value),
+  );
 }
 
 export function rank(

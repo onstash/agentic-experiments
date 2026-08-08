@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- Add source classification for job aggregation records and direct jobs.
+- Limit recommendations to actionable opportunities.
+- Require verified job URLs for apply actions.
+- Reject duplicate recommendations.
+- Allow empty recommendations when no actionable opportunity exists.
+- Add research on agent architecture and guardrails.
+
 ## 0.4.0
 
 ### Minor Changes
