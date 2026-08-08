@@ -53,7 +53,29 @@ async function searchIssues(query: string): Promise<GithubIssue[]> {
     throw new Error(
       `GitHub search failed (${response.status}). Check GITHUB_TOKEN and rate limits.`,
     );
-  return ((await response.json()) as SearchResponse).items;
+  const body: unknown = await response.json();
+  if (!isSearchResponse(body)) throw new Error("GitHub search returned malformed data.");
+  return body.items;
+}
+
+function isSearchResponse(value: unknown): value is SearchResponse {
+  if (!value || typeof value !== "object" || !Array.isArray((value as { items?: unknown }).items)) {
+    return false;
+  }
+  return (value as { items: unknown[] }).items.every((item) => {
+    if (!item || typeof item !== "object") return false;
+    const issue = item as Partial<GithubIssue>;
+    return (
+      typeof issue.title === "string" &&
+      (issue.body === null || typeof issue.body === "string") &&
+      typeof issue.html_url === "string" &&
+      typeof issue.repository_url === "string" &&
+      typeof issue.number === "number" &&
+      (issue.state === "open" || issue.state === "closed") &&
+      typeof issue.comments === "number" &&
+      typeof issue.updated_at === "string"
+    );
+  });
 }
 export function toOpportunity(issue: GithubIssue, kind: "oss" | "job"): Opportunity {
   const path = issue.repository_url.split("/repos/")[1]?.split("/") ?? ["unknown", "unknown"];

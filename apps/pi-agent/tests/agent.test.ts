@@ -9,7 +9,12 @@ import { evalCases, evaluateCase } from "../src/evals.js";
 import { parseProfileJson, validateProfile } from "../src/profile.js";
 import { classifyOpportunity, rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
-import { deduplicateOpportunities, toOpportunity, type GithubIssue } from "../src/github.js";
+import {
+  deduplicateOpportunities,
+  searchGithub,
+  toOpportunity,
+  type GithubIssue,
+} from "../src/github.js";
 import { runOpportunityAgent } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
 
@@ -193,6 +198,27 @@ test("recorded GitHub fixtures map to issue-level opportunities", async () => {
   assert.equal(opportunities[1].issue?.labels[0], "help wanted");
   assert.equal(opportunities[3].issue?.state, "closed");
   assert.equal(opportunities[3].source, "github_issue");
+});
+
+test("GitHub search reports rate-limit failures", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response("rate limited", { status: 403 });
+  try {
+    await assert.rejects(searchGithub("agents"), /GitHub search failed \(403\).*rate limits/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("GitHub search rejects malformed responses", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ items: [{ title: "missing fields" }] }), { status: 200 });
+  try {
+    await assert.rejects(searchGithub("agents"), /GitHub search returned malformed data/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("bounded agent loop executes search, rank, and recommendation in order", async () => {
