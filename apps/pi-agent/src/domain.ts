@@ -1,5 +1,6 @@
 export type OpportunityKind = "oss" | "job";
 export type OpportunitySource = "github_issue" | "github_discussion" | "job_board";
+export type OpportunityQuality = "actionable" | "stale" | "duplicate" | "too_broad" | "blocked";
 export type Opportunity = {
   kind: OpportunityKind;
   title: string;
@@ -27,7 +28,34 @@ export type RankedOpportunity = Opportunity & {
   score: number;
   matchedSkills: string[];
   reasons: string[];
+  quality: OpportunityQuality;
+  qualityReasons: string[];
 };
+
+export function classifyOpportunity(
+  opportunity: Opportunity,
+  now = new Date(),
+): {
+  quality: OpportunityQuality;
+  qualityReasons: string[];
+} {
+  const labels = opportunity.issue?.labels.map(normalize) ?? [];
+  const text = normalize(`${opportunity.title} ${opportunity.summary}`);
+
+  if (labels.includes("duplicate") || text.includes("duplicate")) {
+    return { quality: "duplicate", qualityReasons: ["marked or described as a duplicate"] };
+  }
+  if (opportunity.issue?.state === "closed") {
+    return { quality: "blocked", qualityReasons: ["issue is closed"] };
+  }
+  if (/architecture|redesign|rewrite|entire system|breaking change/.test(text)) {
+    return { quality: "too_broad", qualityReasons: ["scope appears broad or architectural"] };
+  }
+  if (daysSince(opportunity.updatedAt, now) > 180) {
+    return { quality: "stale", qualityReasons: ["issue has not been updated recently"] };
+  }
+  return { quality: "actionable", qualityReasons: ["issue is open and has a current task"] };
+}
 
 export function rank(
   opportunities: Opportunity[],
@@ -65,6 +93,7 @@ export function rank(
             statePenalty,
         ),
       );
+      const quality = classifyOpportunity(opportunity);
       return {
         ...opportunity,
         score,
@@ -79,6 +108,7 @@ export function rank(
           credibility >= 1 ? "has a credible repository signal" : "limited repository signal",
           ...(statePenalty ? ["closed issue"] : []),
         ],
+        ...quality,
       };
     })
     .sort((a, b) => b.score - a.score);
@@ -119,7 +149,7 @@ function normalize(value: string): string {
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
-function daysSince(value: string): number {
+function daysSince(value: string, now = new Date()): number {
   const time = Date.parse(value);
-  return Number.isFinite(time) ? (Date.now() - time) / 86_400_000 : Number.POSITIVE_INFINITY;
+  return Number.isFinite(time) ? (now.getTime() - time) / 86_400_000 : Number.POSITIVE_INFINITY;
 }

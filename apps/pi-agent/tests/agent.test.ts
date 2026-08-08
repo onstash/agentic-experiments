@@ -4,7 +4,7 @@ import test from "node:test";
 import { piAgentConfig } from "../src/config.js";
 import { evalCases, evaluateCase } from "../src/evals.js";
 import { parseProfileJson, validateProfile } from "../src/profile.js";
-import { rank } from "../src/domain.js";
+import { classifyOpportunity, rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
 import { deduplicateOpportunities, toOpportunity, type GithubIssue } from "../src/github.js";
 
@@ -117,6 +117,39 @@ test("ranking favors actionable open issues over stale closed issues", () => {
   assert.equal(ranked[0].url, "https://example.com/open");
   assert.ok(ranked[0].reasons.includes("has an approachable contribution signal"));
   assert.ok(ranked[1].reasons.includes("closed issue"));
+});
+
+test("quality classification covers actionable, stale, duplicate, broad, and blocked issues", () => {
+  const base = {
+    kind: "oss" as const,
+    url: "https://example.com/issue",
+    summary: "Fix the issue.",
+    repository: { owner: "example", name: "repo", url: "https://example.com/repo" },
+    topics: [],
+    source: "github_issue" as const,
+  };
+  const now = new Date("2026-08-08T00:00:00Z");
+  const make = (
+    title: string,
+    updatedAt: string,
+    state: "open" | "closed" = "open",
+    labels: string[] = [],
+  ) =>
+    classifyOpportunity(
+      {
+        ...base,
+        title,
+        updatedAt,
+        issue: { number: 1, state, labels, comments: 0 },
+      },
+      now,
+    ).quality;
+
+  assert.equal(make("Fix the issue", "2026-08-01T00:00:00Z"), "actionable");
+  assert.equal(make("Fix the issue", "2025-01-01T00:00:00Z"), "stale");
+  assert.equal(make("Duplicate issue", "2026-08-01T00:00:00Z"), "duplicate");
+  assert.equal(make("Rewrite the entire system", "2026-08-01T00:00:00Z"), "too_broad");
+  assert.equal(make("Closed issue", "2026-08-01T00:00:00Z", "closed"), "blocked");
 });
 
 test("checkEnv accepts omitted optional variables", () => {
