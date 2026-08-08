@@ -79,8 +79,44 @@ test("local ranking returns profile matches first", () => {
       },
     ],
     { skills: ["Python"], interests: ["Agents"], targetRoles: ["Engineer"] },
+    "Python agents",
   );
   assert.equal(ranked[0].title, "Python Agent Engineer");
+});
+
+test("ranking favors actionable open issues over stale closed issues", () => {
+  const ranked = rank(
+    [
+      {
+        kind: "oss",
+        title: "Fix TypeScript documentation",
+        url: "https://example.com/open",
+        summary: "Improve the setup example.",
+        repository: { owner: "A", name: "repo", url: "https://example.com", stars: 1000 },
+        issue: { number: 1, state: "open", labels: ["help wanted"], comments: 2 },
+        topics: ["typescript"],
+        updatedAt: new Date().toISOString(),
+        source: "github_issue",
+      },
+      {
+        kind: "oss",
+        title: "Redesign the architecture",
+        url: "https://example.com/closed",
+        summary: "Replace the entire system.",
+        repository: { owner: "B", name: "repo", url: "https://example.com", stars: 1000 },
+        issue: { number: 2, state: "closed", labels: [], comments: 10 },
+        topics: ["typescript"],
+        updatedAt: "2025-01-01T00:00:00Z",
+        source: "github_issue",
+      },
+    ],
+    { skills: ["TypeScript"], interests: [], targetRoles: [] },
+    "TypeScript",
+  );
+
+  assert.equal(ranked[0].url, "https://example.com/open");
+  assert.ok(ranked[0].reasons.includes("has an approachable contribution signal"));
+  assert.ok(ranked[1].reasons.includes("closed issue"));
 });
 
 test("checkEnv accepts omitted optional variables", () => {

@@ -24,7 +24,7 @@ async function main() {
     const queryIndex = args.indexOf("--query");
     const query = queryIndex >= 0 ? args[queryIndex + 1] : undefined;
     if (query) {
-      const opportunities = rank(await searchGithub(query), profile).slice(0, 20);
+      const opportunities = rank(await searchGithub(query), profile, query).slice(0, 20);
       if (args.includes("--stream")) await streamRecommendation(profile, query, opportunities);
       else console.log(JSON.stringify({ query, opportunities }, null, 2));
     } else console.log(JSON.stringify(profile, null, 2));
