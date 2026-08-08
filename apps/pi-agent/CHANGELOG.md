@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- Tighten recommendation grounding and bounded repair.
+
 ## 0.3.0
 
 ### Minor Changes

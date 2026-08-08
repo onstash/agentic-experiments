@@ -31,3 +31,24 @@ pnpm eval
 ```
 
 Do not change files outside `apps/pi-agent/` unless the user explicitly requests it.
+
+## Release documentation
+
+The package version is `0.4.0` in [package.json](./package.json).
+
+Record release history in [CHANGELOG.md](./CHANGELOG.md).
+
+Create a Changeset from the repository root before a release:
+
+```bash
+pnpm changeset
+```
+
+Apply pending Changesets from the repository root:
+
+```bash
+pnpm version-packages
+```
+
+Review the package version and changelog after the version command. Run the
+verification commands before you commit the release files.
