@@ -89,9 +89,7 @@ export type RuntimeExecutionInput = {
   toolNames: string[];
 };
 
-export function prepareRuntimeExecution(
-  input: RuntimeInput,
-): RuntimeExecutionInput {
+export function prepareRuntimeExecution(input: RuntimeInput): RuntimeExecutionInput {
   return {
     runtime: input,
     linearMessages: toLinearMessages(input),
@@ -121,20 +119,12 @@ function shouldRunTool(query: string, keywords: string[]): boolean {
 
 function getRuntimeQuery(input: RuntimeInput): string {
   const linearMessages = toLinearMessages(input);
-  const userMessage = [...linearMessages]
-    .reverse()
-    .find((message) => message.role === "user");
+  const userMessage = [...linearMessages].reverse().find((message) => message.role === "user");
   return userMessage?.content ?? "";
 }
 
 function selectToolNames(query: string): Array<"search_oss" | "search_jobs"> {
-  const shouldRunOss = shouldRunTool(query, [
-    "open source",
-    "oss",
-    "github",
-    "repository",
-    "repo",
-  ]);
+  const shouldRunOss = shouldRunTool(query, ["open source", "oss", "github", "repository", "repo"]);
   const shouldRunJobs = shouldRunTool(query, [
     "job",
     "jobs",
@@ -176,9 +166,7 @@ function decideNextAction(
   candidateToolNames: Array<RuntimeToolName>,
   executedToolNames: Set<RuntimeToolName>,
 ): AgentDecision {
-  const nextToolName = candidateToolNames.find(
-    (toolName) => !executedToolNames.has(toolName),
-  );
+  const nextToolName = candidateToolNames.find((toolName) => !executedToolNames.has(toolName));
   if (!nextToolName) {
     return {
       kind: "stop",
@@ -235,15 +223,16 @@ function evaluateToolResult(
   }
   executedToolNames.add(nextToolName);
 
-  const areRemainingToolsAvailable = candidateToolNames.filter(
-    (toolName) => !executedToolNames.has(toolName),
-  ).length > 0;
+  const areRemainingToolsAvailable =
+    candidateToolNames.filter((toolName) => !executedToolNames.has(toolName)).length > 0;
 
   const areResultsAvailable = result.length > 0;
 
   return {
     useful: areResultsAvailable,
-    reason: areResultsAvailable ? "Tool execution returned results." : "Tool execution returned no results.",
+    reason: areResultsAvailable
+      ? "Tool execution returned results."
+      : "Tool execution returned no results.",
     shouldContinue: areRemainingToolsAvailable,
   };
 }
@@ -264,11 +253,7 @@ export async function* streamRuntime(
   while (currentIteration < options.maxIterations) {
     currentIteration += 1;
     yield { type: "runtime_iteration_started", iteration: currentIteration };
-    const decision = decideNextAction(
-      query,
-      candidateToolNames,
-      executedToolNames,
-    );
+    const decision = decideNextAction(query, candidateToolNames, executedToolNames);
     if (decision.kind === "stop") {
       stopReason = decision.reason;
       break;
@@ -292,12 +277,7 @@ export async function* streamRuntime(
     }
     totalCount += result.length;
 
-    const evaluation = evaluateToolResult(
-      decision,
-      executedToolNames,
-      candidateToolNames,
-      result,
-    );
+    const evaluation = evaluateToolResult(decision, executedToolNames, candidateToolNames, result);
     yield { type: "step_evaluated", toolName: decision.toolName, evaluation };
     if (!evaluation.useful && !evaluation.shouldContinue) {
       stopReason = "no_better_next_action";

@@ -10,22 +10,36 @@
     <main>
       <p class="eyebrow">Lesson 3</p>
       <h1>Add the First Tool Layer</h1>
-      <p class="lede">Now we connect the runtime to the real world. The win in this lesson is not full GitHub integration yet. It is learning how two different tools can feed one shared opportunity pipeline.</p>
+      <p class="lede">
+        Now we connect the runtime to the real world. The win in this lesson is not full GitHub
+        integration yet. It is learning how two different tools can feed one shared opportunity
+        pipeline.
+      </p>
 
       <section class="card">
         <h2>The Goal</h2>
         <p>Your first useful agent needs exactly two domain tools:</p>
         <ol>
           <li><code>search_oss</code> to find repositories or issues worth contributing to</li>
-          <li><code>search_jobs</code> to find job-like opportunities connected to GitHub organizations or projects</li>
+          <li>
+            <code>search_jobs</code> to find job-like opportunities connected to GitHub
+            organizations or projects
+          </li>
         </ol>
-        <p>Both tools can return different raw shapes. That is normal. The important move is what happens next: normalize them into one shared <code>Opportunity</code> type.</p>
+        <p>
+          Both tools can return different raw shapes. That is normal. The important move is what
+          happens next: normalize them into one shared <code>Opportunity</code> type.
+        </p>
       </section>
 
       <section class="card">
         <h2>What Each Tool Should Return First</h2>
-        <p>Keep the first version intentionally narrow. Do not try to return every field GitHub exposes.</p>
-        <pre>type RawOssHit = {
+        <p>
+          Keep the first version intentionally narrow. Do not try to return every field GitHub
+          exposes.
+        </p>
+        <pre>
+type RawOssHit = {
   repoName: string;
   repoUrl: string;
   issueTitle?: string;
@@ -49,9 +63,13 @@ type RawJobHit = {
       <section class="card">
         <h2>The Crucial Translation Step</h2>
         <p>These raw types are not what the ranker should consume. Instead:</p>
-        <pre>function normalizeOss(hit: RawOssHit): Opportunity
+        <pre>
+function normalizeOss(hit: RawOssHit): Opportunity
 function normalizeJob(hit: RawJobHit): Opportunity</pre>
-        <p>The normalizers are where you decide how domain-specific facts become shared ranking signals.</p>
+        <p>
+          The normalizers are where you decide how domain-specific facts become shared ranking
+          signals.
+        </p>
       </section>
 
       <section class="card">
@@ -82,7 +100,8 @@ function normalizeJob(hit: RawJobHit): Opportunity</pre>
 
       <section class="card">
         <h2>Minimal TypeScript Shape</h2>
-        <pre>type Opportunity = {
+        <pre>
+type Opportunity = {
   kind: "oss" | "job";
   title: string;
   url: string;
@@ -94,13 +113,20 @@ function normalizeJob(hit: RawJobHit): Opportunity</pre>
   effortScore: number;
   confidenceScore: number;
 };</pre>
-        <p>Once both tools emit this shape, your ranker becomes dramatically simpler because it no longer cares where the item came from.</p>
+        <p>
+          Once both tools emit this shape, your ranker becomes dramatically simpler because it no
+          longer cares where the item came from.
+        </p>
       </section>
 
       <section class="card">
         <h2>What The Pi Tools Should Know</h2>
-        <p>The model does not need direct GitHub API knowledge. It only needs tool descriptions clear enough to decide when to call each tool.</p>
-        <pre>{
+        <p>
+          The model does not need direct GitHub API knowledge. It only needs tool descriptions clear
+          enough to decide when to call each tool.
+        </p>
+        <pre>
+{
   name: "search_oss",
   description: "Find GitHub repositories and contribution issues relevant to a user profile"
 }
@@ -109,13 +135,18 @@ function normalizeJob(hit: RawJobHit): Opportunity</pre>
   name: "search_jobs",
   description: "Find GitHub-adjacent job opportunities relevant to a user profile"
 }</pre>
-        <p>That separation is healthy: the model chooses, the tool fetches, the normalizer translates, the ranker compares.</p>
+        <p>
+          That separation is healthy: the model chooses, the tool fetches, the normalizer
+          translates, the ranker compares.
+        </p>
       </section>
 
       <section class="card quiz">
         <h2>Retrieval Practice</h2>
         <ol>
-          <li>Why should the ranker consume normalized opportunities instead of raw tool payloads?</li>
+          <li>
+            Why should the ranker consume normalized opportunities instead of raw tool payloads?
+          </li>
           <li>Name one raw field an OSS tool might return and how it maps into a shared field.</li>
           <li>Name one raw field a job tool might return and how it maps into a shared field.</li>
         </ol>
@@ -123,18 +154,32 @@ function normalizeJob(hit: RawJobHit): Opportunity</pre>
 
       <section class="card prompt">
         <h2>Action</h2>
-        <p>Read the companion sheet: <a href="../reference/tool-normalization-map.html">Tool Normalization Map</a>.</p>
-        <p>Then send me one answer from memory: why is normalization the boundary that makes OSS and job opportunities comparable?</p>
+        <p>
+          Read the companion sheet:
+          <a href="../reference/tool-normalization-map.html">Tool Normalization Map</a>.
+        </p>
+        <p>
+          Then send me one answer from memory: why is normalization the boundary that makes OSS and
+          job opportunities comparable?
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>Re-read the <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> tools section and imagine these two domain tools as the first real extension of the CLI skeleton from Lesson 2.</p>
+        <p>
+          Re-read the
+          <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>
+          tools section and imagine these two domain tools as the first real extension of the CLI
+          skeleton from Lesson 2.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>If you want, I can next teach either the normalization functions themselves or the first GitHub API adapter design. Both are good next steps.</p>
+        <p>
+          If you want, I can next teach either the normalization functions themselves or the first
+          GitHub API adapter design. Both are good next steps.
+        </p>
       </section>
     </main>
   </body>

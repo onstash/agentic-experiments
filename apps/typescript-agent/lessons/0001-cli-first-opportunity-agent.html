@@ -10,25 +10,41 @@
     <main>
       <p class="eyebrow">Lesson 1</p>
       <h1>Shape the CLI-First Opportunity Agent</h1>
-      <p class="lede">Your first win is not “build the whole agent.” It is choosing the smallest architecture that can honestly work for both open source and jobs without collapsing into a pile of special cases.</p>
+      <p class="lede">
+        Your first win is not “build the whole agent.” It is choosing the smallest architecture that
+        can honestly work for both open source and jobs without collapsing into a pile of special
+        cases.
+      </p>
 
       <section class="card">
         <h2>Mission Tie-In</h2>
-        <p>You want one TypeScript agent, built on Pi AI, that can inspect GitHub-shaped signals and answer a practical question: <em>what should I pursue next, this OSS opportunity or this job opportunity?</em></p>
+        <p>
+          You want one TypeScript agent, built on Pi AI, that can inspect GitHub-shaped signals and
+          answer a practical question:
+          <em>what should I pursue next, this OSS opportunity or this job opportunity?</em>
+        </p>
         <p>That means our first design choice is architectural, not cosmetic.</p>
       </section>
 
       <section class="card">
         <h2>The Key Idea</h2>
-        <p>Do <strong>not</strong> build two separate agents first. Build one agent with two source adapters and one shared ranking shape.</p>
-        <pre>CLI command
+        <p>
+          Do <strong>not</strong> build two separate agents first. Build one agent with two source
+          adapters and one shared ranking shape.
+        </p>
+        <pre>
+CLI command
   -> build user profile
   -> ask Pi model to choose tools
   -> fetch OSS and job candidates
   -> normalize into one opportunity type
   -> rank
   -> explain the top picks</pre>
-        <p class="small">This lesson’s recommendation is partly an engineering inference from your mission. Pi AI gives us the model, context, tools, and event stream; the domain architecture is our layer on top of that.</p>
+        <p class="small">
+          This lesson’s recommendation is partly an engineering inference from your mission. Pi AI
+          gives us the model, context, tools, and event stream; the domain architecture is our layer
+          on top of that.
+        </p>
       </section>
 
       <section class="grid two">
@@ -40,7 +56,10 @@
             <li><code>models.stream(...)</code> for event-by-event output</li>
             <li>Provider flexibility if you switch models later</li>
           </ul>
-          <p class="small">Source: <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>.</p>
+          <p class="small">
+            Source:
+            <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>.
+          </p>
         </div>
         <div class="card">
           <h2>What GitHub Gives Us</h2>
@@ -50,14 +69,20 @@
             <li>A consistent way to gather repos, issues, and org signals</li>
             <li>A foundation for later adapters outside GitHub</li>
           </ul>
-          <p class="small">Sources: <a href="https://docs.github.com/en/graphql">GitHub GraphQL API docs</a>, <a href="https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28">GitHub REST issues docs</a>.</p>
+          <p class="small">
+            Sources: <a href="https://docs.github.com/en/graphql">GitHub GraphQL API docs</a>,
+            <a href="https://docs.github.com/en/rest/issues/issues?apiVersion=2022-11-28"
+              >GitHub REST issues docs</a
+            >.
+          </p>
         </div>
       </section>
 
       <section class="card">
         <h2>The Minimal Data Model</h2>
         <p>Everything becomes easier once both opportunity types fit one envelope:</p>
-        <pre>type Opportunity = {
+        <pre>
+type Opportunity = {
   kind: "oss" | "job";
   title: string;
   url: string;
@@ -80,14 +105,19 @@
           <li>Print the top five with a one-line explanation each.</li>
           <li>Show stream events so the runtime is inspectable.</li>
         </ol>
-        <p>That is enough to be “working.” It does not need web UI, persistence, or autonomous loops yet.</p>
+        <p>
+          That is enough to be “working.” It does not need web UI, persistence, or autonomous loops
+          yet.
+        </p>
       </section>
 
       <section class="card quiz">
         <h2>Retrieval Practice</h2>
         <p>Answer these from memory before checking above:</p>
         <ol>
-          <li>Why is one shared <code>Opportunity</code> type better than separate ranking paths?</li>
+          <li>
+            Why is one shared <code>Opportunity</code> type better than separate ranking paths?
+          </li>
           <li>What four things should the first CLI do?</li>
           <li>Which Pi AI feature makes the runtime visible while it runs?</li>
         </ol>
@@ -95,13 +125,26 @@
 
       <section class="card prompt">
         <h2>Action</h2>
-        <p>Open the reference sheet: <a href="../reference/opportunity-agent-architecture.html">Opportunity Agent Architecture</a>.</p>
-        <p>Then ask me for Lesson 2, and I’ll teach the exact Pi AI runtime skeleton for the CLI: models collection, tool definitions, context construction, and stream handling.</p>
+        <p>
+          Open the reference sheet:
+          <a href="../reference/opportunity-agent-architecture.html"
+            >Opportunity Agent Architecture</a
+          >.
+        </p>
+        <p>
+          Then ask me for Lesson 2, and I’ll teach the exact Pi AI runtime skeleton for the CLI:
+          models collection, tool definitions, context construction, and stream handling.
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>Read the <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> sections on Quick Start, Tools, and Context. That is the closest thing to the runtime contract we are building on.</p>
+        <p>
+          Read the
+          <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>
+          sections on Quick Start, Tools, and Context. That is the closest thing to the runtime
+          contract we are building on.
+        </p>
       </section>
     </main>
   </body>

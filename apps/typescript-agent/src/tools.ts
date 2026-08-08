@@ -8,11 +8,14 @@ export type ToolDefinition<TArgs, TResult> = {
     type: "object";
     properties: Record<string, { type: string; description: string }>;
     required: string[];
-  },
+  };
   execute: (args: TArgs) => Promise<TResult>;
-}
+};
 
-export const searchJobsTool: ToolDefinition<{ query: string }, Awaited<ReturnType<typeof fetchRawJobHits>>> = {
+export const searchJobsTool: ToolDefinition<
+  { query: string },
+  Awaited<ReturnType<typeof fetchRawJobHits>>
+> = {
   name: "search_jobs",
   description: "Search for job opportunities based on a query string.",
   parameters: {
@@ -30,7 +33,10 @@ export const searchJobsTool: ToolDefinition<{ query: string }, Awaited<ReturnTyp
   },
 };
 
-export const searchOssTool: ToolDefinition<{ query: string }, Awaited<ReturnType<typeof fetchRawOssHits>>> = {
+export const searchOssTool: ToolDefinition<
+  { query: string },
+  Awaited<ReturnType<typeof fetchRawOssHits>>
+> = {
   name: "search_oss",
   description: "Search for open-source software opportunities based on a query string.",
   parameters: {

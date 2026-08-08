@@ -10,16 +10,23 @@
     <main>
       <p class="eyebrow">Reference</p>
       <h1>Agent Decision Protocol</h1>
-      <p class="lede">A compact reference for the first explicit decision layer in the Pi-inspired agent. This layer sits between loop control and tool execution.</p>
+      <p class="lede">
+        A compact reference for the first explicit decision layer in the Pi-inspired agent. This
+        layer sits between loop control and tool execution.
+      </p>
 
       <section class="card">
         <h2>Why It Exists</h2>
-        <p>Without a decision object, the runtime hides its choices inside branching control flow. With a decision object, the runtime can say what it is about to do before it does it.</p>
+        <p>
+          Without a decision object, the runtime hides its choices inside branching control flow.
+          With a decision object, the runtime can say what it is about to do before it does it.
+        </p>
       </section>
 
       <section class="card">
         <h2>Minimal First Shape</h2>
-        <pre>type AgentDecision =
+        <pre>
+type AgentDecision =
   | {
       kind: "call_tool";
       toolName: "search_oss" | "search_jobs";
@@ -33,7 +40,8 @@
 
       <section class="card">
         <h2>Decision Flow</h2>
-        <pre>loop iteration
+        <pre>
+loop iteration
   -> inspect runtime state
   -> decide next action
   -> if call_tool: execute it
@@ -63,12 +71,16 @@
 
       <section class="card">
         <h2>What Comes Later</h2>
-        <pre>type AgentDecision =
+        <pre>
+type AgentDecision =
   | { kind: "call_tool"; ... }
   | { kind: "summarize"; ... }
   | { kind: "write_memory"; ... }
   | { kind: "stop"; ... };</pre>
-        <p>The first version should stay small. Start with only <code>call_tool</code> and <code>stop</code>.</p>
+        <p>
+          The first version should stay small. Start with only <code>call_tool</code> and
+          <code>stop</code>.
+        </p>
       </section>
     </main>
   </body>

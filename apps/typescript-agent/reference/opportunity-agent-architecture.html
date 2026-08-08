@@ -10,11 +10,15 @@
     <main>
       <p class="eyebrow">Reference</p>
       <h1>Opportunity Agent Architecture</h1>
-      <p class="lede">A compact blueprint for the first CLI-first Pi AI agent that compares open source and job opportunities in one flow.</p>
+      <p class="lede">
+        A compact blueprint for the first CLI-first Pi AI agent that compares open source and job
+        opportunities in one flow.
+      </p>
 
       <section class="card">
         <h2>Core Loop</h2>
-        <pre>user goal -> build context -> choose tools -> fetch signals -> normalize -> rank -> explain -> print result</pre>
+        <pre>
+user goal -> build context -> choose tools -> fetch signals -> normalize -> rank -> explain -> print result</pre>
       </section>
 
       <section class="grid two">
@@ -40,7 +44,8 @@
 
       <section class="card">
         <h2>Shared Opportunity Shape</h2>
-        <pre>{
+        <pre>
+{
   kind: "oss" | "job",
   title: string,
   url: string,
@@ -58,10 +63,19 @@
 
       <section class="card">
         <h2>MVP Source Strategy</h2>
-        <p>Use GitHub-native signals first. This is partly an inference from the mission rather than an explicit Pi feature.</p>
+        <p>
+          Use GitHub-native signals first. This is partly an inference from the mission rather than
+          an explicit Pi feature.
+        </p>
         <ul>
-          <li>OSS opportunities: repositories, good-first issues, help-wanted issues, active maintainers</li>
-          <li>Job opportunities: hiring issues, discussions, repository READMEs, organization profiles, and later external adapters</li>
+          <li>
+            OSS opportunities: repositories, good-first issues, help-wanted issues, active
+            maintainers
+          </li>
+          <li>
+            Job opportunities: hiring issues, discussions, repository READMEs, organization
+            profiles, and later external adapters
+          </li>
         </ul>
       </section>
 

@@ -10,31 +10,42 @@
     <main>
       <p class="eyebrow">Lesson 7</p>
       <h1>From Streamed Runtime to Agent Loop</h1>
-      <p class="lede">You are not starting over. You already have a real runtime spine. This lesson shows exactly what is learned, what is done, and what is still left before this becomes a Pi-inspired agent with loop, tool calls, eval, memories, and contextual markdown files.</p>
+      <p class="lede">
+        You are not starting over. You already have a real runtime spine. This lesson shows exactly
+        what is learned, what is done, and what is still left before this becomes a Pi-inspired
+        agent with loop, tool calls, eval, memories, and contextual markdown files.
+      </p>
 
       <section class="card">
         <h2>Progress So Far</h2>
         <p>These lessons are now part of your learned base:</p>
         <ol>
-          <li><a href="./0001-cli-first-opportunity-agent.html">Lesson 1</a> — studied and learned</li>
+          <li>
+            <a href="./0001-cli-first-opportunity-agent.html">Lesson 1</a> — studied and learned
+          </li>
           <li><a href="./0002-pi-cli-skeleton.html">Lesson 2</a> — studied and learned</li>
           <li><a href="./0003-first-tool-layer.html">Lesson 3</a> — studied and learned</li>
           <li><a href="./0004-normalization-functions.html">Lesson 4</a> — studied and learned</li>
           <li><a href="./0005-first-ranker.html">Lesson 5</a> — studied and learned</li>
           <li><a href="./0006-cli-file-layout.html">Lesson 6</a> — studied and learned</li>
         </ol>
-        <p class="small">This continuation starts from the current code state, not from the beginning.</p>
+        <p class="small">
+          This continuation starts from the current code state, not from the beginning.
+        </p>
       </section>
 
       <section class="card">
         <h2>What You Have Right Now</h2>
-        <pre>user input
+        <pre>
+user input
   -> buildRuntimeInput(...)
   -> streamRuntime(...)
   -> tool_selected
   -> tool_executed
   -> runtime_completed</pre>
-        <p>This is a real runtime flow. It is inspectable, streamed, and useful. That is progress.</p>
+        <p>
+          This is a real runtime flow. It is inspectable, streamed, and useful. That is progress.
+        </p>
       </section>
 
       <section class="card quiz">
@@ -56,7 +67,8 @@
           <div class="card">
             <h3>1. Real Loop</h3>
             <p>The agent needs a bounded loop such as:</p>
-            <pre>while step &lt; maxSteps:
+            <pre>
+while step &lt; maxSteps:
   decide next action
   maybe call tool
   inspect result
@@ -65,7 +77,8 @@
           <div class="card">
             <h3>2. Real Decision Shape</h3>
             <p>The agent needs a first-class internal decision object, for example:</p>
-            <pre>type AgentDecision =
+            <pre>
+type AgentDecision =
   | { kind: "call_tool"; toolName: string; args: unknown }
   | { kind: "summarize" }
   | { kind: "stop"; reason: string };</pre>
@@ -93,12 +106,16 @@
           <li>state and context are persisted in markdown files</li>
           <li>the run is reviewed by a small eval layer</li>
         </ol>
-        <p>It does <strong>not</strong> mean “copy an external Pi package exactly.” It means keeping the same operational ideas in your own codebase.</p>
+        <p>
+          It does <strong>not</strong> mean “copy an external Pi package exactly.” It means keeping
+          the same operational ideas in your own codebase.
+        </p>
       </section>
 
       <section class="card">
         <h2>The Memory Plan</h2>
-        <pre>memory/
+        <pre>
+memory/
   working-memory.md
   episodic/
     2026-07-18-first-run.md
@@ -117,13 +134,17 @@
 
       <section class="card">
         <h2>The Context-Doc Plan</h2>
-        <pre>context/
+        <pre>
+context/
   SYSTEM.md
   MISSION.md
   TOOL_GUIDE.md
   EVAL_GUIDE.md
   RANKING_GUIDE.md</pre>
-        <p>These files are stable inputs to each run. They are not memories. They are the durable instructions and reference documents the runtime loads before it starts.</p>
+        <p>
+          These files are stable inputs to each run. They are not memories. They are the durable
+          instructions and reference documents the runtime loads before it starts.
+        </p>
       </section>
 
       <section class="card">
@@ -138,7 +159,10 @@
           <li>add semantic and procedural memory markdown</li>
           <li>load stable context markdown into each run</li>
         </ol>
-        <p>Read the compact roadmap here: <a href="../reference/pi-inspired-agent-roadmap.html">Pi-Inspired Agent Roadmap</a>.</p>
+        <p>
+          Read the compact roadmap here:
+          <a href="../reference/pi-inspired-agent-roadmap.html">Pi-Inspired Agent Roadmap</a>.
+        </p>
       </section>
 
       <section class="card quiz">
@@ -152,18 +176,34 @@
 
       <section class="card prompt">
         <h2>Action</h2>
-        <p>Open the roadmap reference and then look at your current [runtime.ts](/Users/santoshvenkatraman/Personal/Coding/github-opportunity-agent/apps/pi-agent/src/runtime.ts). Point to the exact place where the future multi-step loop will sit.</p>
-        <p>Then ask me for the next continuation lesson, and I’ll teach the first concrete upgrade: converting the current one-pass stream into a bounded multi-step agent loop.</p>
+        <p>
+          Open the roadmap reference and then look at your current
+          [runtime.ts](/Users/santoshvenkatraman/Personal/Coding/github-opportunity-agent/apps/pi-agent/src/runtime.ts).
+          Point to the exact place where the future multi-step loop will sit.
+        </p>
+        <p>
+          Then ask me for the next continuation lesson, and I’ll teach the first concrete upgrade:
+          converting the current one-pass stream into a bounded multi-step agent loop.
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>Re-read the <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> sections on context, tools, and streaming. Then compare them to your own runtime implementation in <code>src/runtime.ts</code>. The lesson here is in the mapping between the runtime primitives and your application architecture.</p>
+        <p>
+          Re-read the
+          <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>
+          sections on context, tools, and streaming. Then compare them to your own runtime
+          implementation in <code>src/runtime.ts</code>. The lesson here is in the mapping between
+          the runtime primitives and your application architecture.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>If anything is fuzzy, ask me directly. I can slow down and teach the loop, the decision object, the memory layout, or the eval layer one at a time.</p>
+        <p>
+          If anything is fuzzy, ask me directly. I can slow down and teach the loop, the decision
+          object, the memory layout, or the eval layer one at a time.
+        </p>
       </section>
     </main>
   </body>

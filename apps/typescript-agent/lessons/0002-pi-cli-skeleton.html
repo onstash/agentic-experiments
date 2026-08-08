@@ -10,12 +10,23 @@
     <main>
       <p class="eyebrow">Lesson 2</p>
       <h1>Build the Pi CLI Skeleton</h1>
-      <p class="lede">Now we move from architecture to runtime shape. The goal is not a finished agent yet. The goal is a minimal Pi AI CLI that can run, stream, and stay inspectable.</p>
+      <p class="lede">
+        Now we move from architecture to runtime shape. The goal is not a finished agent yet. The
+        goal is a minimal Pi AI CLI that can run, stream, and stay inspectable.
+      </p>
 
       <section class="card quiz">
         <h2>Quick Correction</h2>
-        <p>Your first answer was directionally right: a shared type works because OSS and jobs mostly differ by <code>kind</code>. The deeper reason is that one shared type lets you reuse the same normalization, ranking, and explanation pipeline.</p>
-        <p>Your third answer needed one correction: the terminal is only the display surface. The Pi AI feature that makes the runtime visible is the event stream from <code>models.stream(...)</code>.</p>
+        <p>
+          Your first answer was directionally right: a shared type works because OSS and jobs mostly
+          differ by <code>kind</code>. The deeper reason is that one shared type lets you reuse the
+          same normalization, ranking, and explanation pipeline.
+        </p>
+        <p>
+          Your third answer needed one correction: the terminal is only the display surface. The Pi
+          AI feature that makes the runtime visible is the event stream from
+          <code>models.stream(...)</code>.
+        </p>
       </section>
 
       <section class="card">
@@ -31,7 +42,8 @@
 
       <section class="card">
         <h2>Minimal Skeleton</h2>
-        <pre>import { Type, type Context, type Tool } from "@earendil-works/pi-ai";
+        <pre>
+import { Type, type Context, type Tool } from "@earendil-works/pi-ai";
 import { builtinModels } from "@earendil-works/pi-ai/providers/all";
 
 const models = builtinModels();
@@ -64,7 +76,8 @@ const context: Context = {
 
       <section class="card">
         <h2>The Important Runtime Loop</h2>
-        <pre>const stream = models.stream(model, context);
+        <pre>
+const stream = models.stream(model, context);
 
 for await (const event of stream) {
   switch (event.type) {
@@ -79,7 +92,11 @@ for await (const event of stream) {
       break;
   }
 }</pre>
-        <p>This loop matters because it separates <strong>what the model is doing right now</strong> from <strong>the final ranked output you print at the end</strong>.</p>
+        <p>
+          This loop matters because it separates
+          <strong>what the model is doing right now</strong> from
+          <strong>the final ranked output you print at the end</strong>.
+        </p>
       </section>
 
       <section class="card">
@@ -95,18 +112,31 @@ for await (const event of stream) {
       <section class="card prompt">
         <h2>Practice</h2>
         <p>From memory, sketch the five parts of the CLI skeleton on paper or in a scratch file.</p>
-        <p>Then answer this: why is <code>models.stream(...)</code> more than just “printing text in a terminal”?</p>
+        <p>
+          Then answer this: why is <code>models.stream(...)</code> more than just “printing text in
+          a terminal”?
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>Read the <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> quick start carefully, especially the sections on context, tools, and stream events.</p>
-        <p>Use this companion sheet while reading: <a href="../reference/pi-cli-skeleton-checklist.html">Pi CLI Skeleton Checklist</a>.</p>
+        <p>
+          Read the
+          <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>
+          quick start carefully, especially the sections on context, tools, and stream events.
+        </p>
+        <p>
+          Use this companion sheet while reading:
+          <a href="../reference/pi-cli-skeleton-checklist.html">Pi CLI Skeleton Checklist</a>.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>If any part of the runtime loop feels fuzzy, ask me directly. I can unpack the event types, tool calling flow, or how to connect GitHub adapters next.</p>
+        <p>
+          If any part of the runtime loop feels fuzzy, ask me directly. I can unpack the event
+          types, tool calling flow, or how to connect GitHub adapters next.
+        </p>
       </section>
     </main>
   </body>

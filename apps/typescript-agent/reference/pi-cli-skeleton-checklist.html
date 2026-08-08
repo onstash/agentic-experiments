@@ -10,17 +10,22 @@
     <main>
       <p class="eyebrow">Reference</p>
       <h1>Pi CLI Skeleton Checklist</h1>
-      <p class="lede">The smallest useful Pi AI CLI has five moving parts. If one is missing, the agent usually becomes hard to inspect or extend.</p>
+      <p class="lede">
+        The smallest useful Pi AI CLI has five moving parts. If one is missing, the agent usually
+        becomes hard to inspect or extend.
+      </p>
 
       <section class="card">
         <h2>1. Models Collection</h2>
-        <pre>const models = builtinModels();
+        <pre>
+const models = builtinModels();
 const model = models.getModel("openai", "gpt-4o-mini")!;</pre>
       </section>
 
       <section class="card">
         <h2>2. Typed Tools</h2>
-        <pre>const tools: Tool[] = [
+        <pre>
+const tools: Tool[] = [
   {
     name: "search_oss",
     description: "Find open source opportunities",
@@ -31,7 +36,8 @@ const model = models.getModel("openai", "gpt-4o-mini")!;</pre>
 
       <section class="card">
         <h2>3. Context</h2>
-        <pre>const context: Context = {
+        <pre>
+const context: Context = {
   systemPrompt,
   messages,
   tools
@@ -40,7 +46,8 @@ const model = models.getModel("openai", "gpt-4o-mini")!;</pre>
 
       <section class="card">
         <h2>4. Streaming Loop</h2>
-        <pre>const stream = models.stream(model, context);
+        <pre>
+const stream = models.stream(model, context);
 for await (const event of stream) {
   // print text deltas, tool calls, and lifecycle events
 }</pre>

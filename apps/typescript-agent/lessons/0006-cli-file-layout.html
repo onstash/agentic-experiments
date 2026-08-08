@@ -10,7 +10,10 @@
     <main>
       <p class="eyebrow">Lesson 6</p>
       <h1>Lay Out the CLI App</h1>
-      <p class="lede">You now understand the moving parts. This lesson gives each part a home so the first implementation can grow without turning into one giant file.</p>
+      <p class="lede">
+        You now understand the moving parts. This lesson gives each part a home so the first
+        implementation can grow without turning into one giant file.
+      </p>
 
       <section class="card">
         <h2>The Goal</h2>
@@ -27,7 +30,8 @@
 
       <section class="card">
         <h2>Recommended File Layout</h2>
-        <pre>src/
+        <pre>
+src/
   cli.ts
   models.ts
   types.ts
@@ -53,7 +57,9 @@
             <ul>
               <li><code>cli.ts</code>: parse inputs, assemble context, run the flow</li>
               <li><code>models.ts</code>: create Pi models collection and select model</li>
-              <li><code>tools.ts</code>: declare <code>search_oss</code> and <code>search_jobs</code></li>
+              <li>
+                <code>tools.ts</code>: declare <code>search_oss</code> and <code>search_jobs</code>
+              </li>
               <li><code>render/terminal.ts</code>: print stream events and final results</li>
             </ul>
           </div>
@@ -72,7 +78,8 @@
 
       <section class="card">
         <h2>The End-To-End Flow</h2>
-        <pre>cli.ts
+        <pre>
+cli.ts
   -> models.ts
   -> tools.ts
   -> sources/oss.ts and sources/jobs.ts
@@ -85,7 +92,9 @@
       <section class="card">
         <h2>What Not To Do</h2>
         <ul>
-          <li>Do not put GitHub fetch code inside <code>tools.ts</code> and ranking in the same file.</li>
+          <li>
+            Do not put GitHub fetch code inside <code>tools.ts</code> and ranking in the same file.
+          </li>
           <li>Do not make <code>cli.ts</code> own all the business logic.</li>
           <li>Do not let terminal rendering decide ranking behavior.</li>
           <li>Do not duplicate shared types across files.</li>
@@ -95,7 +104,8 @@
       <section class="card">
         <h2>Smallest Useful Starting Point</h2>
         <p>If you need to collapse this even further for the first commit, keep these five:</p>
-        <pre>src/
+        <pre>
+src/
   cli.ts
   types.ts
   tools.ts
@@ -116,17 +126,27 @@
       <section class="card prompt">
         <h2>Action</h2>
         <p>Read the companion sheet: <a href="../reference/cli-file-map.html">CLI File Map</a>.</p>
-        <p>Then answer this from memory: if one file started fetching GitHub data, normalizing it, ranking it, and printing it, what problem would that create?</p>
+        <p>
+          Then answer this from memory: if one file started fetching GitHub data, normalizing it,
+          ranking it, and printing it, what problem would that create?
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>This layout is application architecture derived from your mission and the Pi runtime shape. It is not prescribed by Pi AI itself, but it fits the runtime boundaries we have already learned.</p>
+        <p>
+          This layout is application architecture derived from your mission and the Pi runtime
+          shape. It is not prescribed by Pi AI itself, but it fits the runtime boundaries we have
+          already learned.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>After this, we can either start implementing the real TypeScript files or teach the first GitHub adapter design in more detail.</p>
+        <p>
+          After this, we can either start implementing the real TypeScript files or teach the first
+          GitHub adapter design in more detail.
+        </p>
       </section>
     </main>
   </body>

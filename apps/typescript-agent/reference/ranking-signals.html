@@ -10,7 +10,10 @@
     <main>
       <p class="eyebrow">Reference</p>
       <h1>Ranking Signals</h1>
-      <p class="lede">A first ranker should be simple enough to inspect by hand. If you cannot explain why an item won, the scoring model is too opaque for this stage.</p>
+      <p class="lede">
+        A first ranker should be simple enough to inspect by hand. If you cannot explain why an item
+        won, the scoring model is too opaque for this stage.
+      </p>
 
       <section class="card">
         <h2>Core Signals</h2>
@@ -24,7 +27,8 @@
 
       <section class="card">
         <h2>First Formula</h2>
-        <pre>total =
+        <pre>
+total =
   relevanceScore * 0.45 +
   recencyScore   * 0.20 +
   effortScore    * 0.20 +
@@ -33,12 +37,16 @@
 
       <section class="card">
         <h2>Rule Of Thumb</h2>
-        <p>Weight relevance highest first. A fresh but irrelevant opportunity should not outrank a slightly older, highly relevant one.</p>
+        <p>
+          Weight relevance highest first. A fresh but irrelevant opportunity should not outrank a
+          slightly older, highly relevant one.
+        </p>
       </section>
 
       <section class="card">
         <h2>Explainability Pattern</h2>
-        <pre>{
+        <pre>
+{
   totalScore: number,
   reasons: string[]
 }</pre>

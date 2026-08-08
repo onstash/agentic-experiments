@@ -102,4 +102,3 @@ For learning Python basics, `dataclass` is often easier to understand first.
 
 - Choose `dataclass` for simple internal data containers.
 - Choose `pydantic` for validated models at the edges of your system.
-

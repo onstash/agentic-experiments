@@ -10,7 +10,10 @@
     <main>
       <p class="eyebrow">Reference</p>
       <h1>Pi-Inspired Agent Roadmap</h1>
-      <p class="lede">A compact map of what the current workspace already has, what is partially built, and what still needs to exist before this becomes a working Pi-inspired agent.</p>
+      <p class="lede">
+        A compact map of what the current workspace already has, what is partially built, and what
+        still needs to exist before this becomes a working Pi-inspired agent.
+      </p>
 
       <section class="card">
         <h2>Already Learned</h2>
@@ -39,19 +42,29 @@
         <h2>Still Missing Before “Working Agent”</h2>
         <ol>
           <li><strong>Multi-step loop</strong>: continue, call tool, summarize, stop.</li>
-          <li><strong>Decision protocol</strong>: a first-class internal assistant decision shape.</li>
-          <li><strong>Loop controls</strong>: <code>maxSteps</code>, repeat detection, stop rules.</li>
+          <li>
+            <strong>Decision protocol</strong>: a first-class internal assistant decision shape.
+          </li>
+          <li>
+            <strong>Loop controls</strong>: <code>maxSteps</code>, repeat detection, stop rules.
+          </li>
           <li><strong>Per-step eval</strong>: did the last action improve the run?</li>
           <li><strong>Working memory</strong>: one current-run markdown file.</li>
           <li><strong>Episodic memory</strong>: one markdown file per run.</li>
-          <li><strong>Semantic and procedural memory</strong>: durable learned facts and heuristics.</li>
-          <li><strong>Context-doc loading</strong>: stable markdown guides loaded into runtime context.</li>
+          <li>
+            <strong>Semantic and procedural memory</strong>: durable learned facts and heuristics.
+          </li>
+          <li>
+            <strong>Context-doc loading</strong>: stable markdown guides loaded into runtime
+            context.
+          </li>
         </ol>
       </section>
 
       <section class="card">
         <h2>Recommended Build Order</h2>
-        <pre>1. multi-step runtime loop
+        <pre>
+1. multi-step runtime loop
 2. internal decision shape
 3. stop rules and loop safety
 4. step-by-step eval records
@@ -63,7 +76,8 @@
 
       <section class="card">
         <h2>Three States To Remember</h2>
-        <pre>current state:
+        <pre>
+current state:
   deterministic streamed tool runner
 
 next state:

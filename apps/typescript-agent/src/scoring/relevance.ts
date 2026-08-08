@@ -2,11 +2,9 @@ import type { UserProfile } from "../profile.js";
 
 export function scoreRelevance(topics: string[], profile: UserProfile): number {
   const topicSet = new Set(topics.map((topic) => topic.toLowerCase()));
-  const profileTerms = [
-    ...profile.skills,
-    ...profile.interests,
-    ...profile.targetRoles,
-  ].map((term) => term.toLowerCase());
+  const profileTerms = [...profile.skills, ...profile.interests, ...profile.targetRoles].map(
+    (term) => term.toLowerCase(),
+  );
 
   let matches = 0;
 

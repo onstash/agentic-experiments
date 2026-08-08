@@ -5,31 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>What You Are Building</title>
     <style>
-      body { font-family: Georgia, serif; max-width: 860px; margin: 40px auto; padding: 0 20px; line-height: 1.7; color: #1f2937; background: #fcfcfb; }
-      h1, h2, h3 { font-family: Inter, Arial, sans-serif; line-height: 1.2; }
-      .lede { font-size: 1.15rem; color: #374151; }
-      .panel { background: white; border: 1px solid #e5e7eb; border-radius: 14px; padding: 18px 20px; margin: 1.25rem 0; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04); }
-      code, pre { background: #f3f4f6; border-radius: 8px; }
-      pre { padding: 14px; overflow-x: auto; }
-      a { color: #0f766e; }
+      body {
+        font-family: Georgia, serif;
+        max-width: 860px;
+        margin: 40px auto;
+        padding: 0 20px;
+        line-height: 1.7;
+        color: #1f2937;
+        background: #fcfcfb;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: Inter, Arial, sans-serif;
+        line-height: 1.2;
+      }
+      .lede {
+        font-size: 1.15rem;
+        color: #374151;
+      }
+      .panel {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 18px 20px;
+        margin: 1.25rem 0;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+      }
+      code,
+      pre {
+        background: #f3f4f6;
+        border-radius: 8px;
+      }
+      pre {
+        padding: 14px;
+        overflow-x: auto;
+      }
+      a {
+        color: #0f766e;
+      }
     </style>
   </head>
   <body>
     <h1>What You Are Building</h1>
-    <p class="lede">You are building a small Python system that teaches agent thinking from first principles, then uses that same runtime to help people find good open source repositories to contribute to.</p>
+    <p class="lede">
+      You are building a small Python system that teaches agent thinking from first principles, then
+      uses that same runtime to help people find good open source repositories to contribute to.
+    </p>
 
     <div class="panel">
       <h2>The plain-English version</h2>
-      <p>First, we build the smallest possible agent loop: it looks at input, decides what to do, does it, and returns a result. Then we add messages, state, events, and streaming so the agent is easy to inspect in the terminal.</p>
-      <p>After that, we apply the same runtime to a real problem: ranking GitHub repositories by fit, interest, activity, and contribution potential.</p>
+      <p>
+        First, we build the smallest possible agent loop: it looks at input, decides what to do,
+        does it, and returns a result. Then we add messages, state, events, and streaming so the
+        agent is easy to inspect in the terminal.
+      </p>
+      <p>
+        After that, we apply the same runtime to a real problem: ranking GitHub repositories by fit,
+        interest, activity, and contribution potential.
+      </p>
     </div>
 
     <div class="panel">
       <h2>What the lessons are teaching</h2>
       <ol>
-        <li><a href="../docs/tutorials/chapter-01-what-an-agent-is.md">Chapter 1</a> explains the agent loop.</li>
-        <li><a href="../docs/tutorials/chapter-02-messages-state-and-results.md">Chapter 2</a> explains messages, state, and results.</li>
-        <li><a href="../docs/tutorials/chapter-03-events-and-streaming.md">Chapter 3</a> explains events and streaming.</li>
+        <li>
+          <a href="../docs/tutorials/chapter-01-what-an-agent-is.md">Chapter 1</a> explains the
+          agent loop.
+        </li>
+        <li>
+          <a href="../docs/tutorials/chapter-02-messages-state-and-results.md">Chapter 2</a>
+          explains messages, state, and results.
+        </li>
+        <li>
+          <a href="../docs/tutorials/chapter-03-events-and-streaming.md">Chapter 3</a> explains
+          events and streaming.
+        </li>
       </ol>
     </div>
 
@@ -42,19 +93,36 @@
 
     <div class="panel">
       <h2>Why this matters</h2>
-      <p>If the runtime is clear, the GitHub opportunity agent becomes easier to build, easier to debug, and easier to explain to someone with no background.</p>
+      <p>
+        If the runtime is clear, the GitHub opportunity agent becomes easier to build, easier to
+        debug, and easier to explain to someone with no background.
+      </p>
       <p>That is why we start with the runtime shape first and the GitHub domain second.</p>
     </div>
 
     <div class="panel">
       <h2>Primary source</h2>
-      <p>Read the <a href="https://openai.github.io/openai-agents-python/results/">OpenAI Agents SDK results docs</a> to see the pattern we are borrowing: streamed events during the run, then final output after the stream finishes.</p>
-      <p>For the data models, read the <a href="https://pydantic.dev/docs/validation/latest/concepts/models/">Pydantic models docs</a>.</p>
+      <p>
+        Read the
+        <a href="https://openai.github.io/openai-agents-python/results/"
+          >OpenAI Agents SDK results docs</a
+        >
+        to see the pattern we are borrowing: streamed events during the run, then final output after
+        the stream finishes.
+      </p>
+      <p>
+        For the data models, read the
+        <a href="https://pydantic.dev/docs/validation/latest/concepts/models/"
+          >Pydantic models docs</a
+        >.
+      </p>
     </div>
 
     <div class="panel">
       <h2>Practice</h2>
-      <p>In one sentence, answer: what is the difference between a message, an event, and a result?</p>
+      <p>
+        In one sentence, answer: what is the difference between a message, an event, and a result?
+      </p>
       <p>If that is fuzzy, ask me and we will turn it into the next lesson.</p>
     </div>
   </body>

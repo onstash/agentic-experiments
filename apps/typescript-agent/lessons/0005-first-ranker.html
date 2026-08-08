@@ -10,11 +10,17 @@
     <main>
       <p class="eyebrow">Lesson 5</p>
       <h1>Build the First Ranker</h1>
-      <p class="lede">Now we make decisions. The first ranker should be simple, inspectable, and explainable. We are not chasing perfect intelligence yet. We are building a scoring model you can debug.</p>
+      <p class="lede">
+        Now we make decisions. The first ranker should be simple, inspectable, and explainable. We
+        are not chasing perfect intelligence yet. We are building a scoring model you can debug.
+      </p>
 
       <section class="card">
         <h2>The Ranker’s Job</h2>
-        <p>The ranker takes a list of normalized <code>Opportunity</code> items and answers two questions:</p>
+        <p>
+          The ranker takes a list of normalized <code>Opportunity</code> items and answers two
+          questions:
+        </p>
         <ol>
           <li>Which opportunities fit this user best?</li>
           <li>Why did those opportunities rise to the top?</li>
@@ -23,7 +29,8 @@
 
       <section class="card">
         <h2>Start With Four Signals</h2>
-        <pre>type Opportunity = {
+        <pre>
+type Opportunity = {
   kind: "oss" | "job";
   title: string;
   url: string;
@@ -35,12 +42,16 @@
   effortScore: number;
   confidenceScore: number;
 };</pre>
-        <p>These are enough for a first pass because they capture fit, freshness, approachability, and trust.</p>
+        <p>
+          These are enough for a first pass because they capture fit, freshness, approachability,
+          and trust.
+        </p>
       </section>
 
       <section class="card">
         <h2>Use A Weighted Sum First</h2>
-        <pre>function totalScore(opportunity: Opportunity): number {
+        <pre>
+function totalScore(opportunity: Opportunity): number {
   return (
     opportunity.relevanceScore * 0.45 +
     opportunity.recencyScore * 0.20 +
@@ -48,16 +59,21 @@
     opportunity.confidenceScore * 0.15
   );
 }</pre>
-        <p>Why this shape? Because relevance should dominate early. An irrelevant opportunity should not win just because it is fresh.</p>
+        <p>
+          Why this shape? Because relevance should dominate early. An irrelevant opportunity should
+          not win just because it is fresh.
+        </p>
       </section>
 
       <section class="card">
         <h2>Keep Explanations Beside Scores</h2>
-        <pre>type RankedOpportunity = Opportunity & {
+        <pre>
+type RankedOpportunity = Opportunity & {
   totalScore: number;
   reasons: string[];
 };</pre>
-        <pre>function explain(opportunity: Opportunity): string[] {
+        <pre>
+function explain(opportunity: Opportunity): string[] {
   const reasons: string[] = [];
 
   if (opportunity.relevanceScore >= 8) reasons.push("strong skill match");
@@ -72,7 +88,8 @@
 
       <section class="card">
         <h2>Minimal Ranker Skeleton</h2>
-        <pre>function rank(opportunities: Opportunity[]): RankedOpportunity[] {
+        <pre>
+function rank(opportunities: Opportunity[]): RankedOpportunity[] {
   return opportunities
     .map((opportunity) => ({
       ...opportunity,
@@ -105,18 +122,29 @@
 
       <section class="card prompt">
         <h2>Action</h2>
-        <p>Read the companion sheet: <a href="../reference/ranking-signals.html">Ranking Signals</a>.</p>
-        <p>Then answer this from memory: why is an explainable ranker better than a more complex opaque one at this stage?</p>
+        <p>
+          Read the companion sheet: <a href="../reference/ranking-signals.html">Ranking Signals</a>.
+        </p>
+        <p>
+          Then answer this from memory: why is an explainable ranker better than a more complex
+          opaque one at this stage?
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>This ranking model is application design rather than a Pi-specific API feature. Pi AI gives us the runtime and tools; this lesson defines the decision layer we run on top.</p>
+        <p>
+          This ranking model is application design rather than a Pi-specific API feature. Pi AI
+          gives us the runtime and tools; this lesson defines the decision layer we run on top.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>After this, the cleanest next lesson is either the first GitHub adapter or the first end-to-end CLI file layout.</p>
+        <p>
+          After this, the cleanest next lesson is either the first GitHub adapter or the first
+          end-to-end CLI file layout.
+        </p>
       </section>
     </main>
   </body>

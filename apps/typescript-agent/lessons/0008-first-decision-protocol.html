@@ -10,26 +10,36 @@
     <main>
       <p class="eyebrow">Lesson 8</p>
       <h1>Add the First Decision Protocol</h1>
-      <p class="lede">You now have a real bounded loop. The next upgrade is conceptual but important: the runtime should explicitly represent its next decision instead of hiding that decision inside branching control flow.</p>
+      <p class="lede">
+        You now have a real bounded loop. The next upgrade is conceptual but important: the runtime
+        should explicitly represent its next decision instead of hiding that decision inside
+        branching control flow.
+      </p>
 
       <section class="card">
         <h2>Progress So Far</h2>
         <p>Your learned base now includes:</p>
         <ol>
-          <li><a href="./0001-cli-first-opportunity-agent.html">Lesson 1</a> — studied and learned</li>
+          <li>
+            <a href="./0001-cli-first-opportunity-agent.html">Lesson 1</a> — studied and learned
+          </li>
           <li><a href="./0002-pi-cli-skeleton.html">Lesson 2</a> — studied and learned</li>
           <li><a href="./0003-first-tool-layer.html">Lesson 3</a> — studied and learned</li>
           <li><a href="./0004-normalization-functions.html">Lesson 4</a> — studied and learned</li>
           <li><a href="./0005-first-ranker.html">Lesson 5</a> — studied and learned</li>
           <li><a href="./0006-cli-file-layout.html">Lesson 6</a> — studied and learned</li>
-          <li><a href="./0007-from-streamed-runtime-to-agent-loop.html">Lesson 7</a> — studied and learned</li>
+          <li>
+            <a href="./0007-from-streamed-runtime-to-agent-loop.html">Lesson 7</a> — studied and
+            learned
+          </li>
         </ol>
       </section>
 
       <section class="card">
         <h2>What The Current Runtime Still Hides</h2>
         <p>Today, your runtime does make decisions, but those decisions are implicit:</p>
-        <pre>if no untried tool:
+        <pre>
+if no untried tool:
   stop
 if next tool is search_oss:
   run search_oss
@@ -50,7 +60,8 @@ if next tool is search_jobs:
 
       <section class="card">
         <h2>The First Useful Shape</h2>
-        <pre>type AgentDecision =
+        <pre>
+type AgentDecision =
   | {
       kind: "call_tool";
       toolName: "search_oss" | "search_jobs";
@@ -60,12 +71,16 @@ if next tool is search_jobs:
       kind: "stop";
       reason: StopReason;
     };</pre>
-        <p>This is intentionally small. Do not add <code>summarize</code> or memory-writing decisions yet.</p>
+        <p>
+          This is intentionally small. Do not add <code>summarize</code> or memory-writing decisions
+          yet.
+        </p>
       </section>
 
       <section class="card">
         <h2>How The Loop Changes</h2>
-        <pre>while iteration &lt; maxIterations:
+        <pre>
+while iteration &lt; maxIterations:
   decision = decideNextAction(state)
 
   if decision.kind == "stop":
@@ -75,7 +90,10 @@ if next tool is search_jobs:
     execute tool
     inspect result
     continue</pre>
-        <p>The loop becomes easier to read because the runtime says what it is about to do before doing it.</p>
+        <p>
+          The loop becomes easier to read because the runtime says what it is about to do before
+          doing it.
+        </p>
       </section>
 
       <section class="grid two">
@@ -129,18 +147,35 @@ if next tool is search_jobs:
 
       <section class="card prompt">
         <h2>Action</h2>
-        <p>Read the companion sheet: <a href="../reference/agent-decision-protocol.html">Agent Decision Protocol</a>.</p>
-        <p>Then inspect your current [runtime.ts](/Users/santoshvenkatraman/Personal/Coding/github-opportunity-agent/apps/pi-agent/src/runtime.ts) and point to the exact branches that should move into <code>decideNextAction(...)</code>.</p>
+        <p>
+          Read the companion sheet:
+          <a href="../reference/agent-decision-protocol.html">Agent Decision Protocol</a>.
+        </p>
+        <p>
+          Then inspect your current
+          [runtime.ts](/Users/santoshvenkatraman/Personal/Coding/github-opportunity-agent/apps/pi-agent/src/runtime.ts)
+          and point to the exact branches that should move into <code>decideNextAction(...)</code>.
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>Re-read the <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> sections on tools and streaming, then compare that runtime primitive layer to your own application-level decision layer. The decision protocol is your architecture on top of Pi’s lower-level runtime capabilities.</p>
+        <p>
+          Re-read the
+          <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a>
+          sections on tools and streaming, then compare that runtime primitive layer to your own
+          application-level decision layer. The decision protocol is your architecture on top of
+          Pi’s lower-level runtime capabilities.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>If any part feels abstract, ask me to walk through your current <code>streamRuntime(...)</code> and mark the exact lines that belong in <code>decideNextAction(...)</code>.</p>
+        <p>
+          If any part feels abstract, ask me to walk through your current
+          <code>streamRuntime(...)</code> and mark the exact lines that belong in
+          <code>decideNextAction(...)</code>.
+        </p>
       </section>
     </main>
   </body>

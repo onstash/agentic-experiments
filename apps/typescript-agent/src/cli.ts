@@ -2,8 +2,7 @@ import { saveEpisodicRun } from "./memory/episodic-memory.js";
 import { buildRuntimeInput, streamRuntime } from "./runtime.js";
 
 async function main() {
-  const userInput =
-    process.argv.slice(2).join(" ").trim() || "typescript developer tools";
+  const userInput = process.argv.slice(2).join(" ").trim() || "typescript developer tools";
   const runtime = buildRuntimeInput(userInput);
   const toolCalls: string[] = [];
   const evaluations: string[] = [];

@@ -10,12 +10,19 @@
     <main>
       <p class="eyebrow">Lesson 4</p>
       <h1>Write the Normalization Functions</h1>
-      <p class="lede">This is where the agent stops being a pile of source-specific payloads and becomes a system with one clean comparison shape.</p>
+      <p class="lede">
+        This is where the agent stops being a pile of source-specific payloads and becomes a system
+        with one clean comparison shape.
+      </p>
 
       <section class="card">
         <h2>The Job Of A Normalizer</h2>
-        <p>A normalizer translates raw source facts into a shared <code>Opportunity</code> object. It should be boring, predictable, and free of model logic.</p>
-        <pre>type Opportunity = {
+        <p>
+          A normalizer translates raw source facts into a shared <code>Opportunity</code> object. It
+          should be boring, predictable, and free of model logic.
+        </p>
+        <pre>
+type Opportunity = {
   kind: "oss" | "job";
   title: string;
   url: string;
@@ -31,7 +38,8 @@
 
       <section class="card">
         <h2>What Goes In</h2>
-        <pre>type RawOssHit = {
+        <pre>
+type RawOssHit = {
   repoName: string;
   repoUrl: string;
   repoOwner: string;
@@ -56,7 +64,8 @@ type RawJobHit = {
 
       <section class="card">
         <h2>What The OSS Normalizer Should Do</h2>
-        <pre>function normalizeOss(hit: RawOssHit): Opportunity {
+        <pre>
+function normalizeOss(hit: RawOssHit): Opportunity {
   return {
     kind: "oss",
     title: hit.issueTitle ?? hit.repoName,
@@ -70,12 +79,16 @@ type RawJobHit = {
     confidenceScore: scoreOssConfidence(hit.stars),
   };
 }</pre>
-        <p><code>relevanceScore</code> can start as a placeholder if user-specific ranking comes later. That is fine. The important thing is to make the shape complete and consistent.</p>
+        <p>
+          <code>relevanceScore</code> can start as a placeholder if user-specific ranking comes
+          later. That is fine. The important thing is to make the shape complete and consistent.
+        </p>
       </section>
 
       <section class="card">
         <h2>What The Job Normalizer Should Do</h2>
-        <pre>function normalizeJob(hit: RawJobHit): Opportunity {
+        <pre>
+function normalizeJob(hit: RawJobHit): Opportunity {
   return {
     kind: "job",
     title: hit.roleTitle,
@@ -89,13 +102,17 @@ type RawJobHit = {
     confidenceScore: scoreJobConfidence(hit.source),
   };
 }</pre>
-        <p>The two functions are allowed to compute signals differently. They only need to produce values that mean roughly the same thing at the output boundary.</p>
+        <p>
+          The two functions are allowed to compute signals differently. They only need to produce
+          values that mean roughly the same thing at the output boundary.
+        </p>
       </section>
 
       <section class="card">
         <h2>Helper Functions Are Healthy</h2>
         <p>Keep source-specific heuristics in small helpers.</p>
-        <pre>function scoreRecency(updatedAt: string): number
+        <pre>
+function scoreRecency(updatedAt: string): number
 function scoreOssEffort(labels: string[]): number
 function scoreOssConfidence(stars: number): number
 function scoreJobEffort(summary: string): number
@@ -124,18 +141,32 @@ function scoreJobConfidence(source: RawJobHit["source"]): number</pre>
 
       <section class="card prompt">
         <h2>Action</h2>
-        <p>Read the companion sheet: <a href="../reference/normalization-rules.html">Normalization Rules</a>.</p>
-        <p>Then answer this from memory: what is the difference between a normalizer and a ranker?</p>
+        <p>
+          Read the companion sheet:
+          <a href="../reference/normalization-rules.html">Normalization Rules</a>.
+        </p>
+        <p>
+          Then answer this from memory: what is the difference between a normalizer and a ranker?
+        </p>
       </section>
 
       <section class="card">
         <h2>Primary Source</h2>
-        <p>This lesson is mainly an architectural translation of the mission rather than a Pi-specific API feature. Keep the <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> in mind for tool and context boundaries, but this comparison layer is your application design.</p>
+        <p>
+          This lesson is mainly an architectural translation of the mission rather than a
+          Pi-specific API feature. Keep the
+          <a href="https://github.com/earendil-works/pi/tree/main/packages/ai">Pi AI README</a> in
+          mind for tool and context boundaries, but this comparison layer is your application
+          design.
+        </p>
       </section>
 
       <section class="card">
         <h2>Ask Follow-Ups</h2>
-        <p>If you want, I can next teach the first GitHub adapter shape or the first ranker design. The cleanest next step is usually the ranker.</p>
+        <p>
+          If you want, I can next teach the first GitHub adapter shape or the first ranker design.
+          The cleanest next step is usually the ranker.
+        </p>
       </section>
     </main>
   </body>
