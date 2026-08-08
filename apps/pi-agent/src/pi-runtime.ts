@@ -2,6 +2,28 @@ import type { OpportunityProfile } from "./profile.js";
 import type { RankedOpportunity } from "./domain.js";
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
 
+const SENSITIVE_KEY = /(authorization|api[_-]?key|access[_-]?token|refresh[_-]?token|client[_-]?secret|password|secret|credential)/i;
+
+export function redactSensitiveData(value: unknown, key = ""): unknown {
+  if (SENSITIVE_KEY.test(key)) return "[REDACTED]";
+  if (typeof value === "string") {
+    return value.replace(
+      /([?&](?:token|key|secret|password|credential|signature)=[^&#\s]*)/gi,
+      (match) => `${match.slice(0, match.indexOf("=") + 1)}[REDACTED]`,
+    );
+  }
+  if (Array.isArray(value)) return value.map((item) => redactSensitiveData(item));
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        redactSensitiveData(entryValue, entryKey),
+      ]),
+    );
+  }
+  return value;
+}
+
 export function buildRecommendationPrompt(
   profile: OpportunityProfile,
   query: string,
@@ -17,7 +39,7 @@ export function buildRecommendationPrompt(
     "If the payload does not support a claim, say that the evidence is insufficient.",
     "Give a short ranked recommendation and clear next actions.",
     "JSON payload:",
-    JSON.stringify({ query, profile, opportunities }),
+    JSON.stringify(redactSensitiveData({ query, profile, opportunities })),
   ].join("\n");
 }
 

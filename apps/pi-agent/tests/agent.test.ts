@@ -17,7 +17,7 @@ import {
 } from "../src/github.js";
 import { runOpportunityAgent } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
-import { buildRecommendationPrompt } from "../src/pi-runtime.js";
+import { buildRecommendationPrompt, redactSensitiveData } from "../src/pi-runtime.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -312,4 +312,18 @@ test("stream prompt requires evidence from supplied opportunities", () => {
   assert.match(prompt, /cite its exact URL/);
   assert.match(prompt, /evidence is insufficient/);
   assert.match(prompt, /"opportunities":\[\]/);
+});
+
+test("model input redacts credential fields and URL secrets", () => {
+  const redacted = redactSensitiveData({
+    access_token: "oauth-secret",
+    profile: { name: "Test" },
+    url: "https://example.com/issue?token=query-secret&keep=value",
+  });
+
+  assert.deepEqual(redacted, {
+    access_token: "[REDACTED]",
+    profile: { name: "Test" },
+    url: "https://example.com/issue?token=[REDACTED]&keep=value",
+  });
 });
