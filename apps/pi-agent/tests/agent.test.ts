@@ -7,6 +7,7 @@ import { parseProfileJson, validateProfile } from "../src/profile.js";
 import { classifyOpportunity, rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
 import { deduplicateOpportunities, toOpportunity, type GithubIssue } from "../src/github.js";
+import { runOpportunityAgent } from "../src/agent-loop.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -188,4 +189,68 @@ test("recorded GitHub fixtures map to issue-level opportunities", async () => {
   assert.equal(opportunities[1].issue?.labels[0], "help wanted");
   assert.equal(opportunities[3].issue?.state, "closed");
   assert.equal(opportunities[3].source, "github_issue");
+});
+
+test("bounded agent loop executes search, rank, and recommendation in order", async () => {
+  const calls: string[] = [];
+  const profile = parseProfileJson(
+    JSON.stringify({
+      name: "Test",
+      profile: "Engineer",
+      experience_years: 1,
+      primary_skills: [],
+      interests: [],
+      target_roles: [],
+    }),
+  );
+  const result = await runOpportunityAgent(
+    profile,
+    "agents",
+    {
+      search: async () => {
+        calls.push("search");
+        return [];
+      },
+      rank: () => {
+        calls.push("rank");
+        return [];
+      },
+      recommend: async () => {
+        calls.push("recommend");
+        return "done";
+      },
+    },
+    { maxIterations: 3 },
+  );
+
+  assert.deepEqual(calls, ["search", "rank", "recommend"]);
+  assert.equal(result.recommendation, "done");
+  assert.equal(result.iterations, 3);
+  assert.equal(result.events.length, 6);
+});
+
+test("bounded agent loop stops before recommendation", async () => {
+  const profile = parseProfileJson(
+    JSON.stringify({
+      name: "Test",
+      profile: "Engineer",
+      experience_years: 1,
+      primary_skills: [],
+      interests: [],
+      target_roles: [],
+    }),
+  );
+  const result = await runOpportunityAgent(
+    profile,
+    "agents",
+    { search: async () => [], rank: () => [] },
+    { maxIterations: 2 },
+  );
+
+  assert.equal(result.iterations, 2);
+  assert.equal(result.recommendation, undefined);
+  assert.deepEqual(
+    result.events.map((event) => event.step),
+    ["search", "search", "rank", "rank"],
+  );
 });
