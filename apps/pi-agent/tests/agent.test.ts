@@ -16,6 +16,7 @@ import {
   type GithubIssue,
 } from "../src/github.js";
 import { runOpportunityAgent } from "../src/agent-loop.js";
+import { runAgenticOpportunitySearch } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
 import { buildRecommendationPrompt, redactSensitiveData, validateRecommendationOutput } from "../src/pi-runtime.js";
 
@@ -296,6 +297,30 @@ test("bounded agent loop stops before recommendation", async () => {
     result.events.map((event) => event.step),
     ["search", "search", "rank", "rank"],
   );
+});
+
+test("agentic search derives prioritized queries and stops after enough actionable results", async () => {
+  const profile = parseProfileJson(JSON.stringify({
+    name: "Test", profile: "Engineer", experience_years: 1,
+    primary_skills: ["Python"], interests: ["AI agents"], target_roles: ["Principal Engineer"],
+  }));
+  const calls: string[] = [];
+  const result = await runAgenticOpportunitySearch(profile, undefined, {
+    search: async (query) => {
+      calls.push(query);
+      return [1, 2, 3].map((number) => ({
+        kind: "oss" as const, title: `Fix ${number}`, url: `https://example.com/${number}`,
+        summary: "Fix a small task", repository: { owner: "a", name: "r", url: "https://example.com" },
+        issue: { number, state: "open" as const, labels: ["good first issue"], comments: 0 },
+        topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const,
+      }));
+    },
+    rank: (opportunities, currentProfile, currentQuery) => rank(opportunities, currentProfile, currentQuery),
+  }, { maxQueries: 3 });
+  assert.equal(calls.length, 1);
+  assert.equal(result.queries[0].priority, 1);
+  assert.equal(result.opportunities.length, 3);
+  assert.ok(result.events.some((event) => event.step === "stop"));
 });
 
 test("Pi session factory exposes a persistent session file", async () => {

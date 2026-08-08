@@ -20,6 +20,10 @@ pnpm run-profile -- --profile ./profile.json
 pnpm run-profile -- --profile-json '{"name":"Santosh","profile":"AI-native product engineer","experience_years":11,"primary_skills":["Python","React"],"interests":["Agents"],"target_roles":["Principal Engineer"]}'
 pnpm run-profile -- --profile ./profile.json --query "AI developer tools jobs"
 pnpm run-agent -- --profile ./profile.json --query "AI developer tools jobs" --stream
+# Derive up to three queries from the profile.
+pnpm run-agent -- --profile ./profile.json
+# Print machine-readable results.
+pnpm run-agent -- --profile ./profile.json --query "AI developer tools" --json
 pnpm auth:login
 ```
 
@@ -41,11 +45,16 @@ errors stop the search with a clear error.
 The Pi AI dependency is declared in this package for the model-streaming runtime
 step. Search and ranking remain deterministic and inspectable.
 
+The default agent run derives a bounded query plan when `--query` is absent. It
+searches queries in priority order, stops when it finds enough actionable
+opportunities, deduplicates results, ranks them, and writes JSONL run events to
+`sessions/`. Use `--log` to select another event log path.
+
 Run `pnpm auth:login` once to sign in with ChatGPT through the OpenAI Codex OAuth
 flow. Credentials are stored in `.auth/auth.json`, which is ignored by Git. Add
 `--stream` to send ranked opportunities to the Codex `gpt-5.4-mini` model through
-Pi AI with low reasoning effort. Without `--stream`, the CLI prints deterministic
-JSON and does not require Codex authentication.
+Pi AI with low reasoning effort. Without `--stream`, the CLI prints a readable
+summary. Use `--json` for machine-readable output.
 
 Streamed runs use the Earendil Pi coding-agent session manager. Pi stores each
 session as JSONL under `~/.pi/agent/sessions/`. The session file supports

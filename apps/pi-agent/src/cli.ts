@@ -5,6 +5,8 @@ import { streamRecommendation } from "./pi-runtime.js";
 import { checkEnv } from "./env.js";
 import { loginCodex } from "./auth.js";
 import { createPersistentPiSession } from "./pi-session.js";
+import { runAgenticOpportunitySearch } from "./agent-loop.js";
+import { createRunLogger } from "./run-log.js";
 
 async function main() {
   checkEnv();
@@ -24,14 +26,24 @@ async function main() {
   if (profile) {
     const queryIndex = args.indexOf("--query");
     const query = queryIndex >= 0 ? args[queryIndex + 1] : undefined;
-    if (query) {
-      const opportunities = rank(await searchGithub(query), profile, query).slice(0, 20);
-      if (args.includes("--stream")) {
+    const logIndex = args.indexOf("--log");
+    const logPath = logIndex >= 0 && args[logIndex + 1] ? args[logIndex + 1] : `sessions/${Date.now()}.jsonl`;
+    const log = await createRunLogger(logPath);
+    const result = await runAgenticOpportunitySearch(profile, query, {
+      search: searchGithub,
+      rank: (opportunities, currentProfile, currentQuery) => rank(opportunities, currentProfile, currentQuery),
+      recommend: args.includes("--stream") ? async (currentProfile, currentQuery, opportunities) => {
         const { session } = await createPersistentPiSession();
-        await streamRecommendation(profile, query, opportunities, session);
-        session.dispose();
-      } else console.log(JSON.stringify({ query, opportunities }, null, 2));
-    } else console.log(JSON.stringify(profile, null, 2));
+        try { return await streamRecommendation(currentProfile, currentQuery, opportunities, session); } finally { session.dispose(); }
+      } : undefined,
+    }, { maxQueries: 3, onEvent: (event) => void log(event) });
+    if (args.includes("--json")) console.log(JSON.stringify({ queries: result.queries, opportunities: result.opportunities }, null, 2));
+    else {
+      console.log(`Query plan: ${result.queries.map((item) => item.query).join(" | ")}`);
+      console.log(`Found ${result.opportunities.length} ranked opportunities.`);
+      result.opportunities.slice(0, 10).forEach((item, index) => console.log(`${index + 1}. ${item.title} [${item.quality}] ${item.url}`));
+      if (result.recommendation) console.log(`\n${result.recommendation}`);
+    }
     return;
   }
   throw new Error("Provide --profile path/to/profile.json or --profile-json '{...}'.");
