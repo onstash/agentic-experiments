@@ -5,6 +5,7 @@ import { evalCases, evaluateCase } from "../src/evals.js";
 import { parseProfileJson, validateProfile } from "../src/profile.js";
 import { rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
+import { deduplicateOpportunities } from "../src/github.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -88,4 +89,19 @@ test("checkEnv accepts omitted optional variables", () => {
 test("checkEnv rejects blank credentials", () => {
   assert.throws(() => checkEnv({ GITHUB_TOKEN: "  " }), /GITHUB_TOKEN must not be empty/);
   assert.throws(() => checkEnv({ OPENAI_API_KEY: "" }), /OPENAI_API_KEY must not be empty/);
+});
+
+test("GitHub results remove duplicate issue URLs", () => {
+  const opportunity = {
+    kind: "oss" as const,
+    title: "Issue",
+    url: "https://github.com/example/repo/issues/1",
+    summary: "Fix issue",
+    repository: { owner: "example", name: "repo", url: "https://github.com/example/repo" },
+    topics: ["typescript"],
+    updatedAt: new Date().toISOString(),
+    source: "github_issue" as const,
+  };
+
+  assert.equal(deduplicateOpportunities([opportunity, opportunity]).length, 1);
 });

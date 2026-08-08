@@ -16,14 +16,25 @@ type Issue = {
 type SearchResponse = { items: Issue[] };
 
 export async function searchGithub(query: string): Promise<Opportunity[]> {
-  const [oss, jobs] = await Promise.all([
+  const [labeledOss, broadOss, jobs] = await Promise.all([
     searchIssues(`${query} is:issue is:open (label:"good first issue" OR label:"help wanted")`),
+    searchIssues(`${query} is:issue is:open`),
     searchIssues(`${query} (job OR hiring OR careers) is:issue is:open`),
   ]);
-  return [
-    ...oss.map((issue) => toOpportunity(issue, "oss")),
+  return deduplicateOpportunities([
+    ...labeledOss.map((issue) => toOpportunity(issue, "oss")),
+    ...broadOss.map((issue) => toOpportunity(issue, "oss")),
     ...jobs.map((issue) => toOpportunity(issue, "job")),
-  ];
+  ]);
+}
+
+export function deduplicateOpportunities(opportunities: Opportunity[]): Opportunity[] {
+  const seen = new Set<string>();
+  return opportunities.filter((opportunity) => {
+    if (seen.has(opportunity.url)) return false;
+    seen.add(opportunity.url);
+    return true;
+  });
 }
 async function searchIssues(query: string): Promise<Issue[]> {
   const response = await fetch(
