@@ -7,7 +7,7 @@ import test from "node:test";
 import { piAgentConfig } from "../src/config.js";
 import { evalCases, evaluateCase } from "../src/evals.js";
 import { parseProfileJson, validateProfile } from "../src/profile.js";
-import { classifyOpportunity, rank } from "../src/domain.js";
+import { classifyOpportunity, normalizeQuery, rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
 import {
   deduplicateOpportunities,
@@ -17,7 +17,7 @@ import {
 } from "../src/github.js";
 import { runOpportunityAgent } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
-import { buildRecommendationPrompt, redactSensitiveData } from "../src/pi-runtime.js";
+import { buildRecommendationPrompt, redactSensitiveData, validateRecommendationOutput } from "../src/pi-runtime.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -93,6 +93,18 @@ test("local ranking returns profile matches first", () => {
     "Python agents",
   );
   assert.equal(ranked[0].title, "Python Agent Engineer");
+});
+
+test("query normalization expands aliases and applies exclusions", () => {
+  assert.deepEqual(normalizeQuery("TS agents without jobs"), {
+    included: ["ts", "agents"],
+    excluded: ["jobs"],
+  });
+  const ranked = rank(
+    [{ kind: "oss", title: "TypeScript agent", url: "https://example.com/1", summary: "Build tools", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" }],
+    { skills: ["TS"], interests: [], targetRoles: [], excludedTerms: ["agent"] }, "TS",
+  );
+  assert.ok(ranked[0].reasons.includes("matches an excluded term"));
 });
 
 test("ranking favors actionable open issues over stale closed issues", () => {
@@ -326,4 +338,10 @@ test("model input redacts credential fields and URL secrets", () => {
     profile: { name: "Test" },
     url: "https://example.com/issue?token=[REDACTED]&keep=value",
   });
+});
+
+test("recommendation output cites only supplied URLs", () => {
+  const opportunity = { kind: "oss" as const, title: "Issue", url: "https://example.com/1", summary: "Fix", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
+  validateRecommendationOutput("Recommend https://example.com/1", [opportunity]);
+  assert.throws(() => validateRecommendationOutput("Recommend https://evil.example/2", [opportunity]), /URL that was not supplied/);
 });

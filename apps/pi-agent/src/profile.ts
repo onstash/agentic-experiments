@@ -1,5 +1,11 @@
 import { readFile } from "node:fs/promises";
-export type UserProfile = { skills: string[]; interests: string[]; targetRoles: string[] };
+export type UserProfile = {
+  skills: string[];
+  interests: string[];
+  targetRoles: string[];
+  excludedTerms?: string[];
+  preferredEffort?: "low" | "medium" | "high";
+};
 
 export type OpportunityProfile = UserProfile & {
   name: string;
@@ -11,6 +17,8 @@ export type OpportunityProfile = UserProfile & {
   preferred_company_types?: string[];
   work_preferences?: string[];
   notable_impact?: string[];
+  excluded_terms?: string[];
+  preferred_effort?: "low" | "medium" | "high";
 };
 
 export type ProfileValidationResult =
@@ -41,6 +49,10 @@ export function validateProfile(input: unknown): ProfileValidationResult {
     if (input[field] !== undefined && !isStringArray(input[field]))
       errors.push(`${field} must be an array of strings when provided.`);
   }
+  if (input.excluded_terms !== undefined && !isStringArray(input.excluded_terms))
+    errors.push("excluded_terms must be an array of strings when provided.");
+  if (input.preferred_effort !== undefined && !["low", "medium", "high"].includes(input.preferred_effort as string))
+    errors.push("preferred_effort must be low, medium, or high when provided.");
   if (errors.length) return { valid: false, errors };
   return {
     valid: true,
@@ -48,6 +60,8 @@ export function validateProfile(input: unknown): ProfileValidationResult {
       ...input,
       skills: input.primary_skills,
       targetRoles: input.target_roles,
+      excludedTerms: input.excluded_terms,
+      preferredEffort: input.preferred_effort,
     } as OpportunityProfile,
   };
 }

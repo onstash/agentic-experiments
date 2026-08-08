@@ -59,11 +59,12 @@ export function classifyOpportunity(
 
 export function rank(
   opportunities: Opportunity[],
-  profile: { skills: string[]; interests: string[]; targetRoles: string[] },
+  profile: { skills: string[]; interests: string[]; targetRoles: string[]; excludedTerms?: string[]; preferredEffort?: "low" | "medium" | "high" },
   query = "",
 ): RankedOpportunity[] {
-  const terms = [...profile.skills, ...profile.interests, ...profile.targetRoles].map(normalize);
-  const queryTerms = tokenize(query);
+  const terms = expandTerms([...profile.skills, ...profile.interests, ...profile.targetRoles]);
+  const { included: queryTerms, excluded: queryExclusions } = normalizeQuery(query);
+  const exclusions = [...(profile.excludedTerms ?? []), ...queryExclusions].map(normalize);
   return opportunities
     .map((opportunity) => {
       const text = normalize(
@@ -75,10 +76,11 @@ export function rank(
           ...opportunity.topics,
         ].join(" "),
       );
+      const excluded = exclusions.some((term) => term && text.includes(term));
       const matchedSkills = terms.filter((term) => text.includes(term));
       const matchedQueryTerms = queryTerms.filter((term) => text.includes(term));
       const freshness = freshnessScore(opportunity.updatedAt);
-      const effort = effortScore(opportunity);
+      const effort = effortScore(opportunity, profile.preferredEffort);
       const credibility = credibilityScore(opportunity);
       const statePenalty = opportunity.issue?.state === "closed" ? -3 : 0;
       const score = Math.min(
@@ -90,7 +92,7 @@ export function rank(
             freshness +
             effort +
             credibility +
-            statePenalty,
+            statePenalty - (excluded ? 10 : 0),
         ),
       );
       const quality = classifyOpportunity(opportunity);
@@ -107,16 +109,33 @@ export function rank(
             : "may require substantial effort",
           credibility >= 1 ? "has a credible repository signal" : "limited repository signal",
           ...(statePenalty ? ["closed issue"] : []),
+          ...(excluded ? ["matches an excluded term"] : []),
         ],
         ...quality,
       };
     })
     .sort((a, b) => b.score - a.score);
 }
-function tokenize(value: string): string[] {
-  return normalize(value)
-    .split(" ")
-    .filter((term) => term.length > 2);
+export function normalizeQuery(value: string): { included: string[]; excluded: string[] } {
+  const tokens = normalize(value).split(" ").filter((term) => term.length >= 2);
+  const excluded: string[] = [];
+  const included: string[] = [];
+  let excluding = false;
+  for (const token of tokens) {
+    if (token === "not" || token === "without" || token === "excluding") {
+      excluding = true;
+      continue;
+    }
+    (excluding ? excluded : included).push(token);
+  }
+  return { included, excluded };
+}
+
+const aliases: Record<string, string[]> = {
+  js: ["javascript"], ts: ["typescript"], reactjs: ["react"], ai: ["artificial intelligence"],
+};
+function expandTerms(values: string[]): string[] {
+  return [...new Set(values.flatMap((value) => [normalize(value), ...(aliases[normalize(value)] ?? [])]).filter(Boolean))];
 }
 
 function freshnessScore(value: string): number {
@@ -126,13 +145,13 @@ function freshnessScore(value: string): number {
   return 0;
 }
 
-function effortScore(opportunity: Opportunity): number {
+function effortScore(opportunity: Opportunity, preferredEffort?: "low" | "medium" | "high"): number {
   const labels = opportunity.issue?.labels.map(normalize) ?? [];
   const text = normalize(`${opportunity.title} ${opportunity.summary}`);
-  if (labels.includes("good first issue")) return 2;
+  if (labels.includes("good first issue")) return preferredEffort === "high" ? 1 : 2;
   if (labels.includes("help wanted")) return 1.5;
   if (/documentation|docs|typo|example|error message/.test(text)) return 1;
-  if (/refactor|redesign|architecture|breaking change/.test(text)) return 0;
+  if (/refactor|redesign|architecture|breaking change/.test(text)) return preferredEffort === "high" ? 1 : 0;
   return 0.5;
 }
 

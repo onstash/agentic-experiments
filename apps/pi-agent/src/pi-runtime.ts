@@ -62,5 +62,15 @@ export async function streamRecommendation(
   } finally {
     unsubscribe();
   }
+  validateRecommendationOutput(output, opportunities);
   return output;
+}
+
+export function validateRecommendationOutput(output: string, opportunities: RankedOpportunity[]): void {
+  const allowed = new Set(opportunities.map((opportunity) => opportunity.url));
+  const urls = output.match(/https?:\/\/[^\s)<>]+/g) ?? [];
+  const unknown = urls.filter((url) => !allowed.has(url.replace(/[.,;:]+$/, "")));
+  if (unknown.length) throw new Error("Recommendation included a URL that was not supplied by the deterministic pipeline.");
+  if (opportunities.length > 0 && !opportunities.some((opportunity) => output.includes(opportunity.url)))
+    throw new Error("Recommendation did not cite an exact URL from the supplied opportunities.");
 }
