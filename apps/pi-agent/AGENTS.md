@@ -4,6 +4,14 @@
 
 This instruction applies to all work inside `apps/pi-agent/`.
 
+## Language
+
+Write new and changed documentation in Simplified Technical English. Use short
+sentences, active voice, and one clear meaning for each term. Keep code,
+identifiers, commands, file paths, and quoted errors unchanged.
+
+Use Simplified Technical English for writing guidance.
+
 ## Repository boundary
 
 - Use only code, configuration, fixtures, and dependencies owned by `apps/pi-agent/`.

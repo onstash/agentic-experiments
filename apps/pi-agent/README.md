@@ -33,6 +33,11 @@ and `target_roles`. Additional profile fields are optional and preserved.
 The current evals are deterministic unit-level checks. Add recorded GitHub
 fixtures before adding network-dependent evals so results stay reproducible.
 
+GitHub search uses read-only API requests. Each search uses up to three pages,
+with 20 issues per page. Each request has a 10-second timeout and retries
+transient server failures up to two times. Rate-limit and malformed-response
+errors stop the search with a clear error.
+
 The Pi AI dependency is declared in this package for the model-streaming runtime
 step. Search and ranking remain deterministic and inspectable.
 
@@ -45,3 +50,12 @@ JSON and does not require Codex authentication.
 Streamed runs use the Earendil Pi coding-agent session manager. Pi stores each
 session as JSONL under `~/.pi/agent/sessions/`. The session file supports
 resume and branching through the Pi coding-agent tools.
+
+The package requires Node.js 22.19.0 or later. Run the verification commands
+from `apps/pi-agent` after dependency changes:
+
+```bash
+pnpm check
+pnpm test
+pnpm eval
+```
