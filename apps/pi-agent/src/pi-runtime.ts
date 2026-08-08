@@ -1,5 +1,6 @@
 import type { OpportunityProfile } from "./profile.js";
-import type { RankedOpportunity } from "./domain.js";
+import type { OpportunityAction, RankedOpportunity } from "./domain.js";
+import { ApprovalRequiredError, evaluateOpportunityAction } from "./policy.js";
 import type { AgentSession } from "@earendil-works/pi-coding-agent";
 import { array, object, parse, picklist, string } from "valibot";
 
@@ -11,7 +12,7 @@ export type RecommendationDocument = {
     url: string;
     title: string;
     evidence: Array<{ field: string; value: string }>;
-    actionType: "inspect" | "contribute" | "apply";
+    actionType: OpportunityAction;
     nextAction: string;
   }>;
   summary: string;
@@ -93,7 +94,7 @@ export async function streamRecommendation(
   query: string,
   opportunities: RankedOpportunity[],
   session: AgentSession,
-): Promise<string> {
+): Promise<RecommendationDocument> {
   let output = "";
   const unsubscribe = session.subscribe((event) => {
     if (event.type !== "message_update" || event.assistantMessageEvent.type !== "text_delta")
@@ -110,8 +111,13 @@ export async function streamRecommendation(
       await session.prompt(prompt);
       try {
         const document = validateRecommendationOutput(output, opportunities);
-        process.stdout.write(`${JSON.stringify(document, null, 2)}\n`);
-        return output;
+        if (document.recommendations.some((item) => evaluateOpportunityAction(
+          opportunities.find((opportunity) => opportunity.url === item.url)!,
+          item.actionType,
+        ).decision === "review")) {
+          throw new ApprovalRequiredError(["application action requires user approval"]);
+        }
+        return document;
       } catch (error) {
         lastError = error instanceof Error ? error.message : "Unknown validation error.";
         if (attempt === 2) throw error;
@@ -149,10 +155,8 @@ export function validateRecommendationOutput(output: string, opportunities: Rank
     if (recommendationIds.has(item.opportunityId)) throw new Error("Recommendation included the same opportunity more than once.");
     recommendationIds.add(item.opportunityId);
     if (opportunity.quality !== "actionable") throw new Error("Recommendation included an opportunity that is not actionable.");
-    if (item.actionType === "apply" && opportunity.source !== "direct_job") throw new Error("Apply action requires a verified direct job source.");
-    if (item.actionType === "contribute" && opportunity.kind !== "oss") throw new Error("Contribute action requires an open-source opportunity.");
-    if (item.actionType === "contribute" && !/issue|pull request|contribut|fix|review|read/i.test(item.nextAction)) throw new Error("Contribute action next action did not match the action type.");
-    if (item.actionType === "apply" && !/apply|application|career|job/i.test(item.nextAction)) throw new Error("Apply action next action did not match the action type.");
+    const policy = evaluateOpportunityAction(opportunity, item.actionType);
+    if (policy.decision === "block") throw new Error(policy.reasons[0]);
     if (item.title !== opportunity.title) throw new Error("Recommendation title did not match the supplied opportunity.");
     const source = {
       matchedSkills: opportunity.matchedSkills,

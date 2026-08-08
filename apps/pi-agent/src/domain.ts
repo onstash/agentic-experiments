@@ -1,6 +1,16 @@
 export type OpportunityKind = "oss" | "job";
 export type OpportunitySource = "github_issue" | "github_discussion" | "job_board" | "job_aggregation" | "direct_job";
 export type OpportunityQuality = "actionable" | "stale" | "duplicate" | "too_broad" | "blocked" | "not_an_opportunity";
+export type OpportunityAction = "inspect" | "contribute" | "apply";
+export type OpportunityEvidence = {
+  sourceKind: OpportunitySource;
+  sourceUrl: string;
+  applicationUrl?: string;
+  provenance: "github_api" | "derived";
+  collectedAt: string;
+  freshness: "current" | "stale" | "unknown";
+  certainty: "verified" | "inferred" | "unknown";
+};
 export type Opportunity = {
   kind: OpportunityKind;
   title: string;
@@ -23,6 +33,7 @@ export type Opportunity = {
   updatedAt: string;
   createdAt?: string;
   source: OpportunitySource;
+  evidence?: OpportunityEvidence;
 };
 export type RankedOpportunity = Opportunity & {
   score: number;
@@ -65,9 +76,15 @@ export function classifyOpportunity(
 }
 
 export function isJobAggregationText(value: string): boolean {
-  return /digest|scanner|scan result|job room|job feed|automatic shortlist|new roles? opened|job radar|master board|career page postings?|job listings?/.test(
+  return /digest|scanner|scan result|job room|job feed|automatic shortlist|new role(?:s| s)? opened|job radar|master board|career page postings?|job listings?/.test(
     normalize(value),
   );
+}
+
+export function freshnessState(value: string, now = new Date()): "current" | "stale" | "unknown" {
+  const timestamp = Date.parse(value);
+  if (!Number.isFinite(timestamp)) return "unknown";
+  return now.getTime() - timestamp <= 180 * 86_400_000 ? "current" : "stale";
 }
 
 export function rank(

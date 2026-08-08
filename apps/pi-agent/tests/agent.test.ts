@@ -15,10 +15,10 @@ import {
   toOpportunity,
   type GithubIssue,
 } from "../src/github.js";
-import { runOpportunityAgent } from "../src/agent-loop.js";
 import { runAgenticOpportunitySearch } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
 import { buildRecommendationPrompt, redactSensitiveData, streamRecommendation, validateRecommendationOutput } from "../src/pi-runtime.js";
+import { evaluateOpportunityAction } from "../src/policy.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 5);
@@ -204,6 +204,35 @@ test("quality classification rejects job aggregation records", () => {
   assert.equal(result.quality, "not_an_opportunity");
 });
 
+test("quality classification rejects parenthesized new-role aggregation titles", () => {
+  const result = classifyOpportunity({
+    kind: "job",
+    title: "🔔 766 new role(s) opened",
+    url: "https://github.com/example/repo/issues/1",
+    summary: "",
+    repository: { owner: "example", name: "repo", url: "https://github.com/example/repo" },
+    topics: [],
+    updatedAt: new Date().toISOString(),
+    source: "github_issue",
+  });
+  assert.equal(result.quality, "not_an_opportunity");
+});
+
+test("action policy blocks unverified apply actions and requests review for verified jobs", () => {
+  const job = {
+    kind: "job" as const,
+    title: "Engineer",
+    url: "https://example.com/issue",
+    summary: "Hiring.",
+    repository: { owner: "a", name: "r", url: "https://example.com" },
+    topics: [],
+    updatedAt: new Date().toISOString(),
+    source: "github_issue" as const,
+  };
+  assert.equal(evaluateOpportunityAction(job, "apply").decision, "block");
+  assert.equal(evaluateOpportunityAction({ ...job, source: "direct_job", evidence: { sourceKind: "direct_job", sourceUrl: job.url, applicationUrl: "https://jobs.ashbyhq.com/example/1", provenance: "github_api", freshness: "current", collectedAt: new Date().toISOString(), certainty: "inferred" } }, "apply").decision, "review");
+});
+
 test("checkEnv accepts omitted optional variables", () => {
   checkEnv({});
 });
@@ -263,7 +292,7 @@ test("GitHub search rejects malformed responses", async () => {
   }
 });
 
-test("bounded agent loop executes search, rank, and recommendation in order", async () => {
+test("agentic loop runs the bounded query plan", async () => {
   const calls: string[] = [];
   const profile = parseProfileJson(
     JSON.stringify({
@@ -275,7 +304,7 @@ test("bounded agent loop executes search, rank, and recommendation in order", as
       target_roles: [],
     }),
   );
-  const result = await runOpportunityAgent(
+  const result = await runAgenticOpportunitySearch(
     profile,
     "agents",
     {
@@ -289,42 +318,14 @@ test("bounded agent loop executes search, rank, and recommendation in order", as
       },
       recommend: async () => {
         calls.push("recommend");
-        return "done";
+        return { summary: "done", recommendations: [] };
       },
     },
-    { maxIterations: 3 },
+    { maxQueries: 1 },
   );
 
   assert.deepEqual(calls, ["search", "rank", "recommend"]);
-  assert.equal(result.recommendation, "done");
-  assert.equal(result.iterations, 3);
-  assert.equal(result.events.length, 6);
-});
-
-test("bounded agent loop stops before recommendation", async () => {
-  const profile = parseProfileJson(
-    JSON.stringify({
-      name: "Test",
-      profile: "Engineer",
-      experience_years: 1,
-      primary_skills: [],
-      interests: [],
-      target_roles: [],
-    }),
-  );
-  const result = await runOpportunityAgent(
-    profile,
-    "agents",
-    { search: async () => [], rank: () => [] },
-    { maxIterations: 2 },
-  );
-
-  assert.equal(result.iterations, 2);
-  assert.equal(result.recommendation, undefined);
-  assert.deepEqual(
-    result.events.map((event) => event.step),
-    ["search", "search", "rank", "rank"],
-  );
+  assert.equal(result.recommendation?.summary, "done");
 });
 
 test("agentic search derives prioritized queries and stops after enough actionable results", async () => {
@@ -411,7 +412,7 @@ test("recommendation validation rejects unsupported claims", () => {
 test("recommendation validation rejects duplicate and unverified apply actions", () => {
   const opportunity = { kind: "job" as const, title: "Hiring engineer", url: "https://github.com/example/company/issues/1", summary: "We are hiring.", repository: { owner: "example", name: "company", url: "https://github.com/example/company" }, issue: { number: 1, state: "open" as const, labels: [], comments: 0 }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
   const item = { opportunityId: "example/company#1", url: opportunity.url, title: opportunity.title, evidence: [{ field: "summary", value: "We are hiring." }], actionType: "apply", nextAction: "Apply for the job." };
-  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [item] }), [opportunity]), /verified direct job source/);
+  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [item] }), [opportunity]), /verified application URL/);
   const oss = { ...opportunity, kind: "oss" as const, title: "Fix issue", source: "github_issue" as const };
   const duplicate = { ...item, opportunityId: "example/company#1", url: oss.url, title: oss.title, actionType: "contribute" as const, nextAction: "Read the issue." };
   assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [duplicate, duplicate] }), [oss]), /more than once/);

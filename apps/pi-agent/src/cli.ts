@@ -58,8 +58,11 @@ async function main() {
     else {
       console.log(`Query plan: ${result.queries.map((item) => item.query).join(" | ")}`);
       console.log(`Found ${result.opportunities.length} ranked opportunities.`);
-      result.opportunities.slice(0, 10).forEach((item, index) => console.log(`${index + 1}. ${item.title} [${item.quality}] ${item.url}`));
-      if (result.recommendation) console.log(`\n${result.recommendation}`);
+      result.opportunities
+        .filter((item) => item.quality === "actionable")
+        .slice(0, 10)
+        .forEach((item, index) => console.log(`${index + 1}. ${item.title} ${item.url}`));
+      if (result.recommendation && !args.includes("--stream")) console.log(`\n${JSON.stringify(result.recommendation, null, 2)}`);
     }
     return;
   }

@@ -1,14 +1,7 @@
 import type { Opportunity, RankedOpportunity } from "./domain.js";
 import type { OpportunityProfile } from "./profile.js";
+import type { RecommendationDocument } from "./pi-runtime.js";
 import { deriveQueries, type PlannedQuery } from "./query-plan.js";
-
-export type AgentStep = "search" | "rank" | "recommend";
-
-export type AgentEvent = {
-  step: AgentStep;
-  iteration: number;
-  status: "started" | "completed";
-};
 
 export type AgentLoopDependencies = {
   search: (query: string) => Promise<Opportunity[]>;
@@ -21,50 +14,58 @@ export type AgentLoopDependencies = {
     profile: OpportunityProfile,
     query: string,
     opportunities: RankedOpportunity[],
-  ) => Promise<string>;
-};
-
-export type AgentLoopOptions = {
-  maxIterations: number;
-  onEvent?: (event: AgentEvent) => void;
-};
-
-export type AgentLoopResult = {
-  opportunities: RankedOpportunity[];
-  recommendation?: string;
-  iterations: number;
-  events: AgentEvent[];
+  ) => Promise<RecommendationDocument>;
 };
 
 export type AgenticRunEvent = {
   step: "plan" | "search" | "rank" | "stop" | "recommend";
-  status: "started" | "completed";
+  status: "started" | "completed" | "failed";
   iteration: number;
   query?: string;
   count?: number;
   reason?: string;
+  error?: string;
+  metadata?: AgentRunMetadata;
 };
 
 export type AgenticRunResult = {
+  metadata: AgentRunMetadata;
   queries: PlannedQuery[];
   opportunities: RankedOpportunity[];
-  recommendation?: string;
+  recommendation?: RecommendationDocument;
   events: AgenticRunEvent[];
+};
+
+export type AgentRunMetadata = {
+  runId: string;
+  policyVersion: string;
+  promptVersion: string;
+  schemaVersion: string;
 };
 
 export async function runAgenticOpportunitySearch(
   profile: OpportunityProfile,
   query: string | undefined,
   dependencies: Pick<AgentLoopDependencies, "search" | "rank" | "recommend">,
-  options: { maxQueries: number; onEvent?: (event: AgenticRunEvent) => void },
+  options: { maxQueries: number; metadata?: Partial<AgentRunMetadata>; onEvent?: (event: AgenticRunEvent) => void },
 ): Promise<AgenticRunResult> {
   if (!Number.isInteger(options.maxQueries) || options.maxQueries < 1) throw new Error("maxQueries must be a positive integer.");
   const queries = query?.trim() ? [{ priority: 1, query: query.trim(), reason: "User supplied query." }] : deriveQueries(profile, options.maxQueries);
+  const metadata: AgentRunMetadata = {
+    runId: options.metadata?.runId ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    policyVersion: options.metadata?.policyVersion ?? "1",
+    promptVersion: options.metadata?.promptVersion ?? "1",
+    schemaVersion: options.metadata?.schemaVersion ?? "1",
+  };
   const queryTexts = queries.map((item) => item.query);
   const rankingQuery = queryTexts.join(" ");
   const recommendationQuery = queryTexts.join("; ");
   const events: AgenticRunEvent[] = [];
-  const emit = (event: AgenticRunEvent) => { events.push(event); options.onEvent?.(event); };
+  const emit = (event: AgenticRunEvent) => {
+    const enrichedEvent = { ...event, metadata };
+    events.push(enrichedEvent);
+    options.onEvent?.(enrichedEvent);
+  };
   emit({ step: "plan", status: "started", iteration: 0, count: queries.length });
   emit({ step: "plan", status: "completed", iteration: 0, count: queries.length, reason: query ? "Using the user query." : "Derived queries from the profile." });
   const found: Opportunity[] = [];
@@ -74,15 +75,23 @@ export async function runAgenticOpportunitySearch(
     const iteration = index + 1;
     completedIteration = iteration;
     emit({ step: "search", status: "started", iteration, query: planned.query });
-    found.push(...await dependencies.search(planned.query));
+    let results: Opportunity[];
+    try {
+      results = await dependencies.search(planned.query);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Search failed.";
+      emit({ step: "search", status: "failed", iteration, query: planned.query, error: message });
+      emit({ step: "stop", status: "completed", iteration, count: ranked.length, reason: "Search failed after earlier results were collected." });
+      break;
+    }
+    found.push(...results);
     emit({ step: "search", status: "completed", iteration, query: planned.query, count: found.length });
     emit({ step: "rank", status: "started", iteration, count: found.length });
     ranked = dependencies.rank(found, profile, rankingQuery);
     emit({ step: "rank", status: "completed", iteration, count: ranked.length });
-    const actionable = ranked.filter((item) => item.quality === "actionable" && item.source !== "job_aggregation");
-    const repositories = new Set(actionable.map((item) => `${item.repository.owner}/${item.repository.name}`));
-    if ((actionable.length >= 3 && repositories.size >= 2) || index === queries.length - 1) {
-      const reason = actionable.length >= 3 && repositories.size >= 2 ? "Enough actionable opportunities found." : "Query limit reached.";
+    const actionable = ranked.filter((item) => item.quality === "actionable");
+    if (index === queries.length - 1) {
+      const reason = "Query limit reached.";
       emit({ step: "stop", status: "completed", iteration, count: actionable.length, reason });
       break;
     }
@@ -91,56 +100,11 @@ export async function runAgenticOpportunitySearch(
   const actionableOpportunities = ranked
     .filter((item) => item.quality === "actionable" && item.source !== "job_aggregation")
     .slice(0, 20);
-  let recommendation: string | undefined;
+  let recommendation: RecommendationDocument | undefined;
   if (dependencies.recommend) {
     emit({ step: "recommend", status: "started", iteration: completedIteration });
     recommendation = await dependencies.recommend(profile, recommendationQuery, actionableOpportunities);
     emit({ step: "recommend", status: "completed", iteration: completedIteration });
   }
-  return { queries, opportunities, recommendation, events };
-}
-
-export async function runOpportunityAgent(
-  profile: OpportunityProfile,
-  query: string,
-  dependencies: AgentLoopDependencies,
-  options: AgentLoopOptions,
-): Promise<AgentLoopResult> {
-  if (!Number.isInteger(options.maxIterations) || options.maxIterations < 1) {
-    throw new Error("maxIterations must be a positive integer.");
-  }
-
-  const events: AgentEvent[] = [];
-  const emit = (event: AgentEvent) => {
-    events.push(event);
-    options.onEvent?.(event);
-  };
-  const opportunities = await executeStep("search", 1, emit, () => dependencies.search(query));
-  if (options.maxIterations === 1) {
-    return { opportunities: [], iterations: 1, events };
-  }
-
-  const ranked = await executeStep("rank", 2, emit, () =>
-    Promise.resolve(dependencies.rank(opportunities, profile, query)),
-  );
-  if (options.maxIterations === 2 || !dependencies.recommend) {
-    return { opportunities: ranked, iterations: 2, events };
-  }
-
-  const recommendation = await executeStep("recommend", 3, emit, () =>
-    dependencies.recommend!(profile, query, ranked),
-  );
-  return { opportunities: ranked, recommendation, iterations: 3, events };
-}
-
-async function executeStep<T>(
-  step: AgentStep,
-  iteration: number,
-  emit: (event: AgentEvent) => void,
-  action: () => Promise<T>,
-): Promise<T> {
-  emit({ step, iteration, status: "started" });
-  const result = await action();
-  emit({ step, iteration, status: "completed" });
-  return result;
+  return { metadata, queries, opportunities, recommendation, events };
 }

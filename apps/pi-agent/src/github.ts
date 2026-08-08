@@ -1,4 +1,4 @@
-import { isJobAggregationText, type Opportunity } from "./domain.js";
+import { freshnessState, isJobAggregationText, type Opportunity } from "./domain.js";
 
 export type GithubIssue = {
   title: string;
@@ -108,6 +108,11 @@ function isSearchResponse(value: unknown): value is SearchResponse {
 export function toOpportunity(issue: GithubIssue, kind: "oss" | "job"): Opportunity {
   const path = issue.repository_url.split("/repos/")[1]?.split("/") ?? ["unknown", "unknown"];
   const labels = issue.labels?.map((label) => label.name) ?? [];
+  const source = kind === "job" && isJobAggregation(issue)
+    ? "job_aggregation"
+    : kind === "job" && applicationUrl(issue)
+      ? "direct_job"
+      : "github_issue";
   return {
     kind,
     title: issue.title,
@@ -128,18 +133,23 @@ export function toOpportunity(issue: GithubIssue, kind: "oss" | "job"): Opportun
     topics: labels,
     updatedAt: issue.updated_at,
     createdAt: issue.created_at,
-    source: kind === "job" && isJobAggregation(issue)
-      ? "job_aggregation"
-      : kind === "job" && isDirectJob(issue)
-        ? "direct_job"
-        : "github_issue",
+    source,
+    evidence: {
+      sourceKind: source,
+      sourceUrl: issue.html_url,
+      ...(source === "direct_job" ? { applicationUrl: applicationUrl(issue) } : {}),
+      provenance: "github_api",
+      collectedAt: new Date().toISOString(),
+      freshness: freshnessState(issue.updated_at),
+      certainty: source === "direct_job" || source === "job_aggregation" ? "inferred" : "verified",
+    },
   };
 }
 function isJobAggregation(issue: GithubIssue): boolean {
   return isJobAggregationText(`${issue.title} ${issue.body ?? ""}`);
 }
-function isDirectJob(issue: GithubIssue): boolean {
-  return /https?:\/\/(?:[^\s/]+\.)?(?:greenhouse\.io|jobs\.ashbyhq\.com|lever\.co|workday(?:jobs)?\.com|myworkdayjobs\.com)\//i.test(
-    issue.body ?? "",
-  );
+function applicationUrl(issue: GithubIssue): string | undefined {
+  return (issue.body ?? "").match(
+    /https?:\/\/(?:[^\s/]+\.)?(?:greenhouse\.io|jobs\.ashbyhq\.com|lever\.co|workday(?:jobs)?\.com|myworkdayjobs\.com)\/[^\s)<>]+/i,
+  )?.[0];
 }

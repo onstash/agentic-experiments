@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0
+
+### Minor Changes
+
+- Add typed source evidence and action policy decisions.
+- Require approval for application actions.
+- Remove the duplicate agent loop and early-stop threshold.
+- Return validated recommendation documents.
+- Compute evidence freshness from source timestamps.
+- Record run metadata with each agent event.
+- Record the RCA and regression rules in `MEMORY.md`.
+- Preserve earlier results when a later search hits a GitHub rate limit.
+
 ## 0.5.0
 
 ### Minor Changes
