@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { piAgentConfig } from "../src/config.js";
 import { evalCases, evaluateCase } from "../src/evals.js";
 import { parseProfileJson, validateProfile } from "../src/profile.js";
 import { rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
-import { deduplicateOpportunities } from "../src/github.js";
+import { deduplicateOpportunities, toOpportunity, type GithubIssue } from "../src/github.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -104,4 +105,18 @@ test("GitHub results remove duplicate issue URLs", () => {
   };
 
   assert.equal(deduplicateOpportunities([opportunity, opportunity]).length, 1);
+});
+
+test("recorded GitHub fixtures map to issue-level opportunities", async () => {
+  const fixturePath = new URL("../fixtures/github-search.json", import.meta.url);
+  const fixture = JSON.parse(await readFile(fixturePath, "utf8")) as { items: GithubIssue[] };
+  const opportunities = fixture.items.map((issue) =>
+    toOpportunity(issue, issue.title.toLowerCase().includes("hiring") ? "job" : "oss"),
+  );
+
+  assert.equal(opportunities.length, 4);
+  assert.equal(opportunities[0].issue?.number, 101);
+  assert.equal(opportunities[1].issue?.labels[0], "help wanted");
+  assert.equal(opportunities[3].issue?.state, "closed");
+  assert.equal(opportunities[3].source, "github_issue");
 });

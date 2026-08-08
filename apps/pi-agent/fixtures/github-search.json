@@ -1,0 +1,56 @@
+{
+  "items": [
+    {
+      "title": "Improve context usage indicator in the desktop app",
+      "body": "Restore the visible context usage indicator.",
+      "html_url": "https://github.com/example/codex/issues/101",
+      "repository_url": "https://api.github.com/repos/example/codex",
+      "number": 101,
+      "state": "open",
+      "comments": 8,
+      "user": { "author_association": "NONE" },
+      "created_at": "2026-07-20T10:00:00Z",
+      "updated_at": "2026-08-01T10:00:00Z",
+      "labels": [{ "name": "bug" }, { "name": "app" }]
+    },
+    {
+      "title": "Add beginner documentation for the client",
+      "body": "The current documentation does not explain the first setup step.",
+      "html_url": "https://github.com/example/sdk/issues/202",
+      "repository_url": "https://api.github.com/repos/example/sdk",
+      "number": 202,
+      "state": "open",
+      "comments": 2,
+      "user": { "author_association": "CONTRIBUTOR" },
+      "created_at": "2026-07-25T10:00:00Z",
+      "updated_at": "2026-08-02T10:00:00Z",
+      "labels": [{ "name": "help wanted" }]
+    },
+    {
+      "title": "Refactor the entire build system",
+      "body": "Replace the current build system with a new architecture.",
+      "html_url": "https://github.com/example/build/issues/303",
+      "repository_url": "https://api.github.com/repos/example/build",
+      "number": 303,
+      "state": "open",
+      "comments": 14,
+      "user": { "author_association": "MEMBER" },
+      "created_at": "2026-01-10T10:00:00Z",
+      "updated_at": "2026-02-01T10:00:00Z",
+      "labels": []
+    },
+    {
+      "title": "Old hiring issue",
+      "body": "We are hiring a software engineer.",
+      "html_url": "https://github.com/example/company/issues/404",
+      "repository_url": "https://api.github.com/repos/example/company",
+      "number": 404,
+      "state": "closed",
+      "comments": 5,
+      "user": { "author_association": "OWNER" },
+      "created_at": "2026-03-10T10:00:00Z",
+      "updated_at": "2026-03-20T10:00:00Z",
+      "labels": [{ "name": "hiring" }]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 import type { Opportunity } from "./domain.js";
 
-type Issue = {
+export type GithubIssue = {
   title: string;
   body: string | null;
   html_url: string;
@@ -13,7 +13,7 @@ type Issue = {
   updated_at: string;
   labels?: { name: string }[];
 };
-type SearchResponse = { items: Issue[] };
+type SearchResponse = { items: GithubIssue[] };
 
 export async function searchGithub(query: string): Promise<Opportunity[]> {
   const [labeledOss, broadOss, jobs] = await Promise.all([
@@ -36,7 +36,7 @@ export function deduplicateOpportunities(opportunities: Opportunity[]): Opportun
     return true;
   });
 }
-async function searchIssues(query: string): Promise<Issue[]> {
+async function searchIssues(query: string): Promise<GithubIssue[]> {
   const response = await fetch(
     `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=20`,
     {
@@ -55,7 +55,7 @@ async function searchIssues(query: string): Promise<Issue[]> {
     );
   return ((await response.json()) as SearchResponse).items;
 }
-function toOpportunity(issue: Issue, kind: "oss" | "job"): Opportunity {
+export function toOpportunity(issue: GithubIssue, kind: "oss" | "job"): Opportunity {
   const path = issue.repository_url.split("/repos/")[1]?.split("/") ?? ["unknown", "unknown"];
   const labels = issue.labels?.map((label) => label.name) ?? [];
   return {
