@@ -41,3 +41,7 @@ flow. Credentials are stored in `.auth/auth.json`, which is ignored by Git. Add
 `--stream` to send ranked opportunities to the Codex `gpt-5.4-mini` model through
 Pi AI with low reasoning effort. Without `--stream`, the CLI prints deterministic
 JSON and does not require Codex authentication.
+
+Streamed runs use the Earendil Pi coding-agent session manager. Pi stores each
+session as JSONL under `~/.pi/agent/sessions/`. The session file supports
+resume and branching through the Pi coding-agent tools.

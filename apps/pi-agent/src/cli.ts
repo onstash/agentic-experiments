@@ -4,6 +4,7 @@ import { rank } from "./domain.js";
 import { streamRecommendation } from "./pi-runtime.js";
 import { checkEnv } from "./env.js";
 import { loginCodex } from "./auth.js";
+import { createPersistentPiSession } from "./pi-session.js";
 
 async function main() {
   checkEnv();
@@ -25,8 +26,11 @@ async function main() {
     const query = queryIndex >= 0 ? args[queryIndex + 1] : undefined;
     if (query) {
       const opportunities = rank(await searchGithub(query), profile, query).slice(0, 20);
-      if (args.includes("--stream")) await streamRecommendation(profile, query, opportunities);
-      else console.log(JSON.stringify({ query, opportunities }, null, 2));
+      if (args.includes("--stream")) {
+        const { session } = await createPersistentPiSession();
+        await streamRecommendation(profile, query, opportunities, session);
+        session.dispose();
+      } else console.log(JSON.stringify({ query, opportunities }, null, 2));
     } else console.log(JSON.stringify(profile, null, 2));
     return;
   }
