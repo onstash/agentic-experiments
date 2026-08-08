@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { piAgentConfig } from "../src/config.js";
 import { evalCases, evaluateCase } from "../src/evals.js";
@@ -8,6 +11,7 @@ import { classifyOpportunity, rank } from "../src/domain.js";
 import { checkEnv } from "../src/env.js";
 import { deduplicateOpportunities, toOpportunity, type GithubIssue } from "../src/github.js";
 import { runOpportunityAgent } from "../src/agent-loop.js";
+import { JsonlSessionLogger, redactSecrets } from "../src/session-log.js";
 
 test("Pi agent config has a bounded loop", () => {
   assert.equal(piAgentConfig.maxIterations, 3);
@@ -253,4 +257,27 @@ test("bounded agent loop stops before recommendation", async () => {
     result.events.map((event) => event.step),
     ["search", "search", "rank", "rank"],
   );
+});
+
+test("session logger redacts secret keys and bearer values", async () => {
+  assert.deepEqual(
+    redactSecrets({ token: "abc", nested: { api_key: "def" }, text: "Bearer xyz" }),
+    { token: "[REDACTED]", nested: { api_key: "[REDACTED]" }, text: "Bearer [REDACTED]" },
+  );
+});
+
+test("JSONL session logger appends safe events", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "pi-agent-session-"));
+  const filePath = join(directory, "session.jsonl");
+  const logger = new JsonlSessionLogger(filePath);
+  await logger.write({ type: "search", query: "agents", authorization: "secret" });
+  const lines = (await readFile(filePath, "utf8")).trim().split("\n");
+  assert.equal(lines.length, 1);
+  assert.deepEqual(JSON.parse(lines[0]), {
+    timestamp: JSON.parse(lines[0]).timestamp,
+    type: "search",
+    query: "agents",
+    authorization: "[REDACTED]",
+  });
+  await rm(directory, { recursive: true, force: true });
 });
