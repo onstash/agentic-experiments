@@ -1,6 +1,6 @@
 {
   "name": "github-opportunity-pi-agent",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.84.1",
-    "@earendil-works/pi-coding-agent": "^0.84.1"
+    "@earendil-works/pi-coding-agent": "^0.84.1",
+    "valibot": "^1.4.2"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

@@ -1,6 +1,6 @@
 export type OpportunityKind = "oss" | "job";
 export type OpportunitySource = "github_issue" | "github_discussion" | "job_board";
-export type OpportunityQuality = "actionable" | "stale" | "duplicate" | "too_broad" | "blocked";
+export type OpportunityQuality = "actionable" | "stale" | "duplicate" | "too_broad" | "blocked" | "not_an_opportunity";
 export type Opportunity = {
   kind: OpportunityKind;
   title: string;
@@ -41,6 +41,10 @@ export function classifyOpportunity(
 } {
   const labels = opportunity.issue?.labels.map(normalize) ?? [];
   const text = normalize(`${opportunity.title} ${opportunity.summary}`);
+
+  if (/digest|scanner|scan result|job room|job feed|automatic shortlist/.test(text)) {
+    return { quality: "not_an_opportunity", qualityReasons: ["record is a digest, scanner result, or job feed"] };
+  }
 
   if (labels.includes("duplicate") || text.includes("duplicate")) {
     return { quality: "duplicate", qualityReasons: ["marked or described as a duplicate"] };

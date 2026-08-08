@@ -24,6 +24,8 @@ pnpm run-agent -- --profile ./profile.json --query "AI developer tools jobs" --s
 pnpm run-agent -- --profile ./profile.json
 # Print machine-readable results.
 pnpm run-agent -- --profile ./profile.json --query "AI developer tools" --json
+# Increase the bounded query limit when the profile needs wider coverage.
+pnpm run-agent -- --profile ./profile.json --max-iterations 7
 pnpm auth:login
 ```
 
@@ -49,6 +51,8 @@ The default agent run derives a bounded query plan when `--query` is absent. It
 searches queries in priority order, stops when it finds enough actionable
 opportunities, deduplicates results, ranks them, and writes JSONL run events to
 `sessions/`. Use `--log` to select another event log path.
+The default limit is five query iterations. Use `--max-iterations` to set a
+higher bounded limit for a run.
 
 Run `pnpm auth:login` once to sign in with ChatGPT through the OpenAI Codex OAuth
 flow. Credentials are stored in `.auth/auth.json`, which is ignored by Git. Add

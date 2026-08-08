@@ -7,6 +7,7 @@ import { loginCodex } from "./auth.js";
 import { createPersistentPiSession } from "./pi-session.js";
 import { runAgenticOpportunitySearch } from "./agent-loop.js";
 import { createRunLogger } from "./run-log.js";
+import { piAgentConfig } from "./config.js";
 
 async function main() {
   checkEnv();
@@ -28,6 +29,10 @@ async function main() {
     const query = queryIndex >= 0 ? args[queryIndex + 1] : undefined;
     const logIndex = args.indexOf("--log");
     const logPath = logIndex >= 0 && args[logIndex + 1] ? args[logIndex + 1] : `sessions/${Date.now()}.jsonl`;
+    const iterationIndex = args.indexOf("--max-iterations");
+    const maxIterations = iterationIndex >= 0 && Number.isInteger(Number(args[iterationIndex + 1]))
+      ? Number(args[iterationIndex + 1])
+      : piAgentConfig.maxIterations;
     const log = await createRunLogger(logPath);
     const result = await runAgenticOpportunitySearch(profile, query, {
       search: searchGithub,
@@ -36,7 +41,7 @@ async function main() {
         const { session } = await createPersistentPiSession();
         try { return await streamRecommendation(currentProfile, currentQuery, opportunities, session); } finally { session.dispose(); }
       } : undefined,
-    }, { maxQueries: 3, onEvent: (event) => void log(event) });
+    }, { maxQueries: maxIterations, onEvent: (event) => void log(event) });
     if (args.includes("--json")) console.log(JSON.stringify({ queries: result.queries, opportunities: result.opportunities }, null, 2));
     else {
       console.log(`Query plan: ${result.queries.map((item) => item.query).join(" | ")}`);

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- - Add Valibot validation for structured model recommendations.
+  - Reject unsupported claims before streamed output reaches the user.
+  - Increase the default query limit to five bounded iterations.
+  - Add `--max-iterations` for larger bounded searches.
+
 ## 0.2.0
 
 ### Minor Changes

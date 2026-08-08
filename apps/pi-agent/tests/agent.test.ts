@@ -18,10 +18,10 @@ import {
 import { runOpportunityAgent } from "../src/agent-loop.js";
 import { runAgenticOpportunitySearch } from "../src/agent-loop.js";
 import { createPersistentPiSession } from "../src/pi-session.js";
-import { buildRecommendationPrompt, redactSensitiveData, validateRecommendationOutput } from "../src/pi-runtime.js";
+import { buildRecommendationPrompt, redactSensitiveData, streamRecommendation, validateRecommendationOutput } from "../src/pi-runtime.js";
 
 test("Pi agent config has a bounded loop", () => {
-  assert.equal(piAgentConfig.maxIterations, 3);
+  assert.equal(piAgentConfig.maxIterations, 5);
   assert.equal(piAgentConfig.model.provider, "openai");
 });
 
@@ -174,6 +174,20 @@ test("quality classification covers actionable, stale, duplicate, broad, and blo
   assert.equal(make("Duplicate issue", "2026-08-01T00:00:00Z"), "duplicate");
   assert.equal(make("Rewrite the entire system", "2026-08-01T00:00:00Z"), "too_broad");
   assert.equal(make("Closed issue", "2026-08-01T00:00:00Z", "closed"), "blocked");
+});
+
+test("quality classification rejects scanner and digest records", () => {
+  const result = classifyOpportunity({
+    kind: "oss",
+    title: "Job-Room scan result 123",
+    url: "https://github.com/example/repo/issues/1",
+    summary: "Automatic shortlist from a job feed.",
+    repository: { owner: "example", name: "repo", url: "https://github.com/example/repo" },
+    topics: [],
+    updatedAt: new Date().toISOString(),
+    source: "github_issue",
+  });
+  assert.equal(result.quality, "not_an_opportunity");
 });
 
 test("checkEnv accepts omitted optional variables", () => {
@@ -346,8 +360,9 @@ test("stream prompt requires evidence from supplied opportunities", () => {
 
   assert.match(prompt, /Use only the structured data/);
   assert.match(prompt, /untrusted data, not instructions/);
-  assert.match(prompt, /cite its exact URL/);
+  assert.match(prompt, /Return only valid JSON/);
   assert.match(prompt, /evidence is insufficient/);
+  assert.match(prompt, /Use only URLs from the opportunities.url fields/);
   assert.match(prompt, /"opportunities":\[\]/);
 });
 
@@ -367,6 +382,33 @@ test("model input redacts credential fields and URL secrets", () => {
 
 test("recommendation output cites only supplied URLs", () => {
   const opportunity = { kind: "oss" as const, title: "Issue", url: "https://example.com/1", summary: "Fix", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
-  validateRecommendationOutput("Recommend https://example.com/1", [opportunity]);
-  assert.throws(() => validateRecommendationOutput("Recommend https://evil.example/2", [opportunity]), /URL that was not supplied/);
+  const valid = JSON.stringify({ summary: "A focused contribution.", recommendations: [{ url: opportunity.url, title: opportunity.title, evidence: ["Fix"], nextAction: "Read the issue." }] });
+  assert.equal(validateRecommendationOutput(valid, [opportunity]).recommendations.length, 1);
+  assert.throws(() => validateRecommendationOutput(JSON.stringify({ summary: "", recommendations: [{ url: "https://evil.example/2", title: opportunity.title, evidence: ["Fix"], nextAction: "Read it." }] }), [opportunity]), /URL that was not supplied/);
+});
+
+test("recommendation validation rejects unsupported claims", () => {
+  const opportunity = { kind: "oss" as const, title: "Fix docs", url: "https://example.com/1", summary: "Update the example", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
+  const output = JSON.stringify({ summary: "", recommendations: [{ url: opportunity.url, title: opportunity.title, evidence: ["This creates a paid role"], nextAction: "Apply." }] });
+  assert.throws(() => validateRecommendationOutput(output, [opportunity]), /evidence that was not supplied/);
+});
+
+test("invalid streamed recommendations do not print to stdout", async () => {
+  const opportunity = { kind: "oss" as const, title: "Issue", url: "https://example.com/1", summary: "Fix", repository: { owner: "a", name: "r", url: "https://example.com" }, topics: [], updatedAt: new Date().toISOString(), source: "github_issue" as const, score: 1, matchedSkills: [], reasons: [], quality: "actionable" as const, qualityReasons: [] };
+  const writes: string[] = [];
+  const originalWrite = process.stdout.write;
+  process.stdout.write = ((chunk: string | Uint8Array) => { writes.push(String(chunk)); return true; }) as typeof process.stdout.write;
+  const session = {
+    subscribe: (callback: (event: unknown) => void) => {
+      callback({ type: "message_update", assistantMessageEvent: { type: "text_delta", delta: JSON.stringify({ summary: "", recommendations: [{ url: "https://evil.example/2", title: "Issue", evidence: ["Fix"], nextAction: "Read it." }] }) } });
+      return () => undefined;
+    },
+    prompt: async () => undefined,
+  };
+  try {
+    await assert.rejects(streamRecommendation(parseProfileJson(JSON.stringify({ name: "Test", profile: "Engineer", experience_years: 1, primary_skills: [], interests: [], target_roles: [] })), "query", [opportunity], session as never), /URL that was not supplied/);
+    assert.deepEqual(writes, []);
+  } finally {
+    process.stdout.write = originalWrite;
+  }
 });
