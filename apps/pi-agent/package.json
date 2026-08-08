@@ -10,6 +10,7 @@
     "eval": "tsx src/run-evals.ts",
     "run-profile": "tsx src/cli.ts",
     "run-agent": "tsx src/cli.ts",
+    "github-profile-signals": "tsx src/github-profile-signals.ts",
     "auth:login": "tsx src/cli.ts auth:login"
   },
   "dependencies": {

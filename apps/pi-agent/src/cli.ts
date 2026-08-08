@@ -49,6 +49,7 @@ async function main() {
         if (event.step === "plan" && event.status === "completed") console.log(`Planning ${event.count} queries...`);
         if (event.step === "search" && event.status === "started") console.log(`Searching query ${event.iteration}...`);
         if (event.step === "search" && event.status === "completed") console.log(`Found ${event.count} results.`);
+        if (event.step === "search" && event.status === "failed") console.log(`Search stopped: ${event.error}`);
         if (event.step === "rank" && event.status === "completed") console.log(`Ranked ${event.count} opportunities.`);
         if (event.step === "recommend" && event.status === "started") console.log("Generating recommendation...");
         if (event.step === "recommend" && event.status === "completed") console.log("Recommendation validated.");
@@ -62,7 +63,7 @@ async function main() {
         .filter((item) => item.quality === "actionable")
         .slice(0, 10)
         .forEach((item, index) => console.log(`${index + 1}. ${item.title} ${item.url}`));
-      if (result.recommendation && !args.includes("--stream")) console.log(`\n${JSON.stringify(result.recommendation, null, 2)}`);
+      if (result.recommendation) console.log(`\n${JSON.stringify(result.recommendation, null, 2)}`);
     }
     return;
   }

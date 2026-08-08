@@ -218,6 +218,20 @@ test("quality classification rejects parenthesized new-role aggregation titles",
   assert.equal(result.quality, "not_an_opportunity");
 });
 
+test("quality classification rejects content digest records", () => {
+  const result = classifyOpportunity({
+    kind: "oss",
+    title: "Daily Content Summary 2026-06-13",
+    url: "https://github.com/example/repo/issues/1",
+    summary: "Daily news and content summary.",
+    repository: { owner: "example", name: "repo", url: "https://github.com/example/repo" },
+    topics: [],
+    updatedAt: new Date().toISOString(),
+    source: "github_issue",
+  });
+  assert.equal(result.quality, "not_an_opportunity");
+});
+
 test("action policy blocks unverified apply actions and requests review for verified jobs", () => {
   const job = {
     kind: "job" as const,

@@ -76,7 +76,7 @@ export function classifyOpportunity(
 }
 
 export function isJobAggregationText(value: string): boolean {
-  return /digest|scanner|scan result|job room|job feed|automatic shortlist|new role(?:s| s)? opened|job radar|master board|career page postings?|job listings?/.test(
+  return /digest|scanner|scan result|job room|job feed|automatic shortlist|daily content summary|weekly research|news digest|new role(?:s| s)? opened|job radar|master board|career page postings?|job listings?/.test(
     normalize(value),
   );
 }
