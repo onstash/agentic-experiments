@@ -1,7 +1,7 @@
 Hi there,  
 Let me tell you something that might surprise you.  
 Most people who message me about a job never actually say what they want.  
-Seriously.   
+Seriously.  
 I get 100+ DMs and emails a day. Some of them are great. But a lot of them look like this:
 
 > “Hi”  
@@ -19,18 +19,18 @@ This isn’t just unhelpful. It’s exhausting.
 
 [![](https://substackcdn.com/image/fetch/$s_!xx_y!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd02969c8-d072-454a-a326-98b5da47abf4_3750x1969.png)](https://substackcdn.com/image/fetch/$s_!xx_y!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2Fd02969c8-d072-454a-a326-98b5da47abf4_3750x1969.png)
 
-* * *
+---
 
 ### I get it. Reaching out is awkward.
 
 I’ve been on your side.  
-I used to be a frontend engineer. I still remember how weird it felt to message someone cold and try to sound “professional” while also not sounding like a robot. You want to show interest without seeming desperate. You want to be casual but also taken seriously.  
-  
-Now that I’m a recruiter, building ClanX and helping engineers land roles across top startups, I can tell you this: most people overthink it... and still get it wrong.  
-  
+I used to be a frontend engineer. I still remember how weird it felt to message someone cold and try to sound “professional” while also not sounding like a robot. You want to show interest without seeming desperate. You want to be casual but also taken seriously.
+
+Now that I’m a recruiter, building ClanX and helping engineers land roles across top startups, I can tell you this: most people overthink it... and still get it wrong.
+
 Let me walk you through how to make it simple, clear, and most importantly, respectful of everyone’s time.
 
-* * *
+---
 
 ### Case 1: You saw a job and want to apply
 
@@ -38,13 +38,13 @@ Don’t just say “Interested” or “Check my resume.”
 
 Here’s a better version that sounds human and gets to the point:
 
-> “Hey, Juned this side. I saw you’re hiring for a frontend role. I’ve got 4 years of experience working with ReactJS at two product startups. 
-> 
+> “Hey, Juned this side. I saw you’re hiring for a frontend role. I’ve got 4 years of experience working with ReactJS at two product startups.
+>
 > Would love to know if it’s still open and I can apply.”
 
 That’s it. No fluff. No guessing. Just useful information that helps the conversation move forward.
 
-* * *
+---
 
 ### Case 2: You don’t see a job, but want to get on the radar
 
@@ -56,46 +56,37 @@ Try something more thoughtful:
 
 Now I know:
 
-  * What you do
+- What you do
 
-  * Why you’re reaching out
+- Why you’re reaching out
 
-  * That you’re not just blasting messages around
+- That you’re not just blasting messages around
 
-
-
-
-* * *
+---
 
 ### What recruiters _wish_ you’d do
 
 **Do:**
 
-  * Say what kind of role you’re looking for
+- Say what kind of role you’re looking for
 
-  * Mention your skills briefly
+- Mention your skills briefly
 
-  * Share why you’re reaching out to _this_ person
+- Share why you’re reaching out to _this_ person
 
-  * Keep it short (3–5 sentences is perfect)
-
-
-
+- Keep it short (3–5 sentences is perfect)
 
 **Don’t:**
 
-  * Send a “Hi” and wait for a response
+- Send a “Hi” and wait for a response
 
-  * Expect recruiters to figure out your background for you
+- Expect recruiters to figure out your background for you
 
-  * Use copy-paste messages with zero context
+- Use copy-paste messages with zero context
 
-  * Attach a resume and no message
+- Attach a resume and no message
 
-
-
-
-* * *
+---
 
 ### Why this matters
 
@@ -105,24 +96,21 @@ If you make it hard to help you, you’re less likely to hear back. Not because 
 
 Make it easy for us. And you’ll be surprised how much faster the conversation moves.
 
-* * *
+---
 
 ### Final takeaways
 
-  * If you're reaching out, say what you want
+- If you're reaching out, say what you want
 
-  * Be specific, not vague
+- Be specific, not vague
 
-  * Show you're serious enough to write one thoughtful message
+- Show you're serious enough to write one thoughtful message
 
-  * Respect their time, and they’re more likely to respect yours
-
-
-
+- Respect their time, and they’re more likely to respect yours
 
 This isn’t about being perfect. It’s about being clear, human, and helpful.
 
-* * *
+---
 
 Thanks for reading!  
 I’m currently hiring for 30+ engineering positions across top startups in India.  

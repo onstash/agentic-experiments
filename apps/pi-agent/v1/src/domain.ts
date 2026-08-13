@@ -1,6 +1,17 @@
 export type OpportunityKind = "oss" | "job";
-export type OpportunitySource = "github_issue" | "github_discussion" | "job_board" | "job_aggregation" | "direct_job";
-export type OpportunityQuality = "actionable" | "stale" | "duplicate" | "too_broad" | "blocked" | "not_an_opportunity";
+export type OpportunitySource =
+  | "github_issue"
+  | "github_discussion"
+  | "job_board"
+  | "job_aggregation"
+  | "direct_job";
+export type OpportunityQuality =
+  | "actionable"
+  | "stale"
+  | "duplicate"
+  | "too_broad"
+  | "blocked"
+  | "not_an_opportunity";
 export type OpportunityAction = "inspect" | "contribute" | "apply";
 export type OpportunityEvidence = {
   sourceKind: OpportunitySource;
@@ -53,11 +64,23 @@ export function classifyOpportunity(
   const labels = opportunity.issue?.labels.map(normalize) ?? [];
   const text = normalize(`${opportunity.title} ${opportunity.summary}`);
 
+  if (isUnsafeSourceText(text)) {
+    return {
+      quality: "not_an_opportunity",
+      qualityReasons: ["source is a security, leak, vulnerability, or incident report"],
+    };
+  }
   if (isJobAggregationText(text)) {
-    return { quality: "not_an_opportunity", qualityReasons: ["record is a digest, scanner result, or job aggregation"] };
+    return {
+      quality: "not_an_opportunity",
+      qualityReasons: ["record is a digest, scanner result, or job aggregation"],
+    };
   }
   if (opportunity.source === "job_aggregation") {
-    return { quality: "not_an_opportunity", qualityReasons: ["source is a job aggregation record"] };
+    return {
+      quality: "not_an_opportunity",
+      qualityReasons: ["source is a job aggregation record"],
+    };
   }
 
   if (labels.includes("duplicate") || text.includes("duplicate")) {
@@ -76,8 +99,14 @@ export function classifyOpportunity(
 }
 
 export function isJobAggregationText(value: string): boolean {
-  return /digest|scanner|scan result|job room|job feed|automatic shortlist|daily content summary|weekly research|news digest|new role(?:s| s)? opened|job radar|master board|career page postings?|job listings?/.test(
+  return /digest|scanner|scan result|job room|job feed|automatic shortlist|daily content summary|weekly research|news digest|new role(?:s| s)? opened|job radar|master board|career page postings?|job listings?|content aggregator|content aggregation/.test(
     normalize(value),
+  );
+}
+
+function isUnsafeSourceText(value: string): boolean {
+  return /security report|data leak|leak of .* documents|vulnerability disclosure|zero day|zero-day|security downfall|credential leak|secret leak|data breach|incident report/.test(
+    value,
   );
 }
 
@@ -89,7 +118,13 @@ export function freshnessState(value: string, now = new Date()): "current" | "st
 
 export function rank(
   opportunities: Opportunity[],
-  profile: { skills: string[]; interests: string[]; targetRoles: string[]; excludedTerms?: string[]; preferredEffort?: "low" | "medium" | "high" },
+  profile: {
+    skills: string[];
+    interests: string[];
+    targetRoles: string[];
+    excludedTerms?: string[];
+    preferredEffort?: "low" | "medium" | "high";
+  },
   query = "",
 ): RankedOpportunity[] {
   const terms = expandTerms([...profile.skills, ...profile.interests, ...profile.targetRoles]);
@@ -122,7 +157,8 @@ export function rank(
             freshness +
             effort +
             credibility +
-            statePenalty - (excluded ? 10 : 0),
+            statePenalty -
+            (excluded ? 10 : 0),
         ),
       );
       const quality = classifyOpportunity(opportunity);
@@ -147,7 +183,9 @@ export function rank(
     .sort((a, b) => b.score - a.score);
 }
 export function normalizeQuery(value: string): { included: string[]; excluded: string[] } {
-  const tokens = normalize(value).split(" ").filter((term) => term.length >= 2);
+  const tokens = normalize(value)
+    .split(" ")
+    .filter((term) => term.length >= 2);
   const excluded: string[] = [];
   const included: string[] = [];
   let excluding = false;
@@ -162,10 +200,19 @@ export function normalizeQuery(value: string): { included: string[]; excluded: s
 }
 
 const aliases: Record<string, string[]> = {
-  js: ["javascript"], ts: ["typescript"], reactjs: ["react"], ai: ["artificial intelligence"],
+  js: ["javascript"],
+  ts: ["typescript"],
+  reactjs: ["react"],
+  ai: ["artificial intelligence"],
 };
 function expandTerms(values: string[]): string[] {
-  return [...new Set(values.flatMap((value) => [normalize(value), ...(aliases[normalize(value)] ?? [])]).filter(Boolean))];
+  return [
+    ...new Set(
+      values
+        .flatMap((value) => [normalize(value), ...(aliases[normalize(value)] ?? [])])
+        .filter(Boolean),
+    ),
+  ];
 }
 
 function freshnessScore(value: string): number {
@@ -175,13 +222,17 @@ function freshnessScore(value: string): number {
   return 0;
 }
 
-function effortScore(opportunity: Opportunity, preferredEffort?: "low" | "medium" | "high"): number {
+function effortScore(
+  opportunity: Opportunity,
+  preferredEffort?: "low" | "medium" | "high",
+): number {
   const labels = opportunity.issue?.labels.map(normalize) ?? [];
   const text = normalize(`${opportunity.title} ${opportunity.summary}`);
   if (labels.includes("good first issue")) return preferredEffort === "high" ? 1 : 2;
   if (labels.includes("help wanted")) return 1.5;
   if (/documentation|docs|typo|example|error message/.test(text)) return 1;
-  if (/refactor|redesign|architecture|breaking change/.test(text)) return preferredEffort === "high" ? 1 : 0;
+  if (/refactor|redesign|architecture|breaking change/.test(text))
+    return preferredEffort === "high" ? 1 : 0;
   return 0.5;
 }
 

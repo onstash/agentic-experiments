@@ -4,16 +4,13 @@ Let’s be real. LinkedIn is weird.
 
 It’s the only platform where:
 
-  * A VP of Product shares a five-part framework on stakeholder alignment
+- A VP of Product shares a five-part framework on stakeholder alignment
 
-  * A fresher celebrates their first job with 17 emojis and “I’m humbled”
+- A fresher celebrates their first job with 17 emojis and “I’m humbled”
 
-  * A founder casually announces a $12M seed round
+- A founder casually announces a $12M seed round
 
-  * And someone posts a story about getting laid off that racks up 1,500 likes
-
-
-
+- And someone posts a story about getting laid off that racks up 1,500 likes
 
 You come here to check jobs, and suddenly you’re reading:  
 **“I cried in the elevator after a bad one-on-one. Here’s what it taught me about leadership.”**
@@ -25,7 +22,7 @@ Thanks for reading Engineer Turned Recruiter! Subscribe for free to receive new 
 
 [![](https://substackcdn.com/image/fetch/$s_!ZH4e!,w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F015e6c77-9853-44e0-b314-9d94858e712f_1313x938.png)](https://substackcdn.com/image/fetch/$s_!ZH4e!,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F015e6c77-9853-44e0-b314-9d94858e712f_1313x938.png)
 
-* * *
+---
 
 ### Why LinkedIn still matters
 
@@ -40,7 +37,7 @@ That’s why the weirdness becomes your edge.
 Most people scroll quietly. Some repost the same stuff. Few show up with clarity and consistency.  
 If you’re one of those few, you stand out.
 
-* * *
+---
 
 ### What should be your goal as a Job Seeker?
 
@@ -50,7 +47,7 @@ If the right people see you, like recruiters, hiring managers, or peers who can 
 
 Thanks for reading Engineer Turned Recruiter! Subscribe for free to receive new posts and support my work.
 
-* * *
+---
 
 ### How to make LinkedIn work for you
 
@@ -81,16 +78,13 @@ _ Reposts with your voice build credibility and they’re easy to do.
 Start small. Aim to send 10 to 15 connection requests each day.  
 Who should you connect with?
 
-  * Recruiters hiring in your domain
+- Recruiters hiring in your domain
 
-  * Hiring managers at companies you like
+- Hiring managers at companies you like
 
-  * Engineers, designers, or PMs at your dream companies
+- Engineers, designers, or PMs at your dream companies
 
-  * Alumni from your school or bootcamp
-
-
-
+- Alumni from your school or bootcamp
 
 Keep your message simple and kind:  
 “Hey [Name], I’ve been following your work at [Company]. Would love to connect.”
@@ -115,7 +109,7 @@ Visibility builds over time. And LinkedIn rewards consistency more than perfecti
 
 [Subscribe now](https://engineerturnedrecruiter.substack.com/subscribe?)
 
-* * *
+---
 
 ### Final Thought
 
@@ -128,12 +122,12 @@ So if you're job hunting, say something. Post something. DM someone.
 
 Start. Keep going. Let people find you.
 
-* * *
+---
 
 I’m currently hiring for 30+ engineering positions across top startups in India.  
 [Explore open roles here](https://jobs.clanx.ai/?source=etrnewsletter)
 
-* * *
+---
 
 If you’re feeling stuck or not sure what to do next, I can help. I’ve helped 80+ engineers get jobs at top startups in the last 18 months. We can talk about how to find the right roles, improve your resume, fix your LinkedIn, or anything else that helps you get hired. [Book a call with me here](https://topmate.io/hijunedkhatri)
 

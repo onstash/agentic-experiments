@@ -64,8 +64,10 @@ async function githubGet<T>(path: string): Promise<T> {
     signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
   });
   if (!response.ok) {
-    if (response.status === 401) throw new Error("GitHub authentication failed. Check GITHUB_TOKEN.");
-    if (response.status === 403 || response.status === 429) throw new Error("GitHub rate limit reached.");
+    if (response.status === 401)
+      throw new Error("GitHub authentication failed. Check GITHUB_TOKEN.");
+    if (response.status === 403 || response.status === 429)
+      throw new Error("GitHub rate limit reached.");
     throw new Error(`GitHub API request failed (${response.status}).`);
   }
   return (await response.json()) as T;
@@ -107,7 +109,9 @@ export async function collectProfileSignals(): Promise<ProfileSignals> {
   const user = await githubGet<GithubUser>("/user");
   if (!user.login) throw new Error("GitHub user response was malformed.");
   const repositories = (await listRepositories(user.login)).map(toSignal);
-  const languages = new Set(repositories.flatMap((repository) => repository.language ? [repository.language] : []));
+  const languages = new Set(
+    repositories.flatMap((repository) => (repository.language ? [repository.language] : [])),
+  );
   const topics = new Set(repositories.flatMap((repository) => repository.topics));
   return {
     githubUser: user.login,

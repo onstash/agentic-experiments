@@ -1,0 +1,9 @@
+{"timestamp":"2026-08-08T18:07:51.899Z","step":"plan","status":"started","iteration":0,"count":7}
+{"timestamp":"2026-08-08T18:07:51.902Z","step":"plan","status":"completed","iteration":0,"count":7,"reason":"Derived queries from the profile."}
+{"timestamp":"2026-08-08T18:07:51.902Z","step":"search","status":"started","iteration":1,"query":"AI-native products Senior Staff Engineer developer tools"}
+{"timestamp":"2026-08-08T18:07:53.535Z","step":"search","status":"completed","iteration":1,"query":"AI-native products Senior Staff Engineer developer tools","count":36}
+{"timestamp":"2026-08-08T18:07:53.535Z","step":"rank","status":"started","iteration":1,"count":36}
+{"timestamp":"2026-08-08T18:07:53.578Z","step":"rank","status":"completed","iteration":1,"count":36}
+{"timestamp":"2026-08-08T18:07:53.578Z","step":"stop","status":"completed","iteration":1,"count":19,"reason":"Enough actionable opportunities found."}
+{"timestamp":"2026-08-08T18:07:53.578Z","step":"recommend","status":"started","iteration":7}
+{"timestamp":"2026-08-08T18:07:59.095Z","step":"recommend","status":"completed","iteration":7}

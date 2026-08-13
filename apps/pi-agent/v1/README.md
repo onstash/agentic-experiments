@@ -26,6 +26,8 @@ pnpm run-agent -- --profile ./profile.json
 pnpm run-agent -- --profile ./profile.json --query "AI developer tools" --json
 # Increase the bounded query limit when the profile needs wider coverage.
 pnpm run-agent -- --profile ./profile.json --max-iterations 7
+# Use a shorter cache window for a live demo.
+GITHUB_CACHE_TTL_MS=60000 pnpm run-agent -- --profile ./profile.json --query "AI product builder TypeScript React full-stack developer tools" --max-iterations 3 --stream
 pnpm auth:login
 ```
 
@@ -43,6 +45,14 @@ GitHub search uses read-only API requests. Each search uses up to three pages,
 with 20 issues per page. Each request has a 10-second timeout and retries
 transient server failures up to two times. Rate-limit and malformed-response
 errors stop the search with a clear error.
+
+GitHub search caches valid issue pages for 15 minutes by default. Set
+`GITHUB_CACHE_TTL_MS` to change the cache time. Failed and malformed responses
+are not cached. Source filters reject security reports, data-leak reports, and
+content aggregators before ranking. Repository search runs first. It requires a
+license, recent code activity, and a non-archived, non-fork repository. Set
+`GITHUB_REPOSITORY_FRESHNESS_DAYS` to change the 30-day default. Set
+`GITHUB_IGNORED_REPOSITORIES` to a comma-separated list of `owner/name` values.
 
 The Pi AI dependency is declared in this package for the model-streaming runtime
 step. Search and ranking remain deterministic and inspectable.

@@ -1,12 +1,13 @@
 How to actually land a remote job in 30 days.
 
-I've made 320+ hires. 
-Most candidates apply on job boards and wait. 
+I've made 320+ hires.
+Most candidates apply on job boards and wait.
 
 Here's what actually moves the needle.
 
 Step 1.
 Pull companies hiring across these boards
+
 - Wellfound
 - Remote OK
 - We Work Remotely
@@ -45,7 +46,7 @@ Step 6.
 Do this for 10 companies a day, every day, for 30 days.
 That's 300 companies you've reached out to directly. Not 300 applications sitting in some ATS queue.
 
-I've seen people land offers doing exactly this while everyone else was still refreshing job boards and waiting for a response. 
+I've seen people land offers doing exactly this while everyone else was still refreshing job boards and waiting for a response.
 
 Happy to answer questions if you're stuck on any of this. Happy Job Hunting :)
 

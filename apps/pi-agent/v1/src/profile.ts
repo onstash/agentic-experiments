@@ -51,7 +51,10 @@ export function validateProfile(input: unknown): ProfileValidationResult {
   }
   if (input.excluded_terms !== undefined && !isStringArray(input.excluded_terms))
     errors.push("excluded_terms must be an array of strings when provided.");
-  if (input.preferred_effort !== undefined && !["low", "medium", "high"].includes(input.preferred_effort as string))
+  if (
+    input.preferred_effort !== undefined &&
+    !["low", "medium", "high"].includes(input.preferred_effort as string)
+  )
     errors.push("preferred_effort must be low, medium, or high when provided.");
   if (errors.length) return { valid: false, errors };
   return {
