@@ -1,9 +1,0 @@
-jobs:
-  - name: oxlint
-    run: apps/pi-agent/node_modules/.bin/oxlint {staged_files}
-    glob: "**/*.{js,ts,jsx,tsx}"
-
-  - name: oxfmt
-    run: apps/pi-agent/node_modules/.bin/oxfmt {staged_files}
-    glob: "**/*.{js,ts,jsx,tsx,json,html,css,md,mdx,yaml,yml}"
-    stage_fixed: true

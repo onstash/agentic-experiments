@@ -1,14 +1,5 @@
 {
-  "name": "github-opportunity-agent",
-  "version": "0.0.0",
+  "name": "agentic-experiments",
   "private": true,
-  "packageManager": "pnpm@10.10.0",
-  "scripts": {
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "changeset publish"
-  },
-  "devDependencies": {
-    "@changesets/cli": "^2.29.5"
-  }
+  "packageManager": "pnpm@10.10.0"
 }

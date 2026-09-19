@@ -1,41 +1,19 @@
-# GitHub Opportunity Agent
+# Agentic Experiments
 
-This repository contains an agent that finds and ranks GitHub opportunities for
-a user profile. The main implementation is in `apps/pi-agent`.
+This repository contains independent agent experiments.
 
-## Pi agent
+## Agents
 
-The Pi agent provides:
+No active agents exist yet.
 
-- Profile validation from a file or inline JSON.
-- Read-only GitHub issue search.
-- Deterministic opportunity ranking and quality labels.
-- Bounded search, ranking, and recommendation steps.
-- Native Earendil Pi JSONL sessions for streamed recommendations.
-- GitHub pagination, timeouts, retries, and response validation.
+Add each agent under `agents/<agent-name>/`. Each agent must contain its own README, instructions, mission, memory, source code, tests, and learning material.
 
-## Run the agent
+## Repository structure
 
-```bash
-cd apps/pi-agent
-pnpm install
-pnpm run-profile -- --profile ./profile.json --query "AI developer tools jobs"
-pnpm run-agent -- --profile ./profile.json --query "AI developer tools jobs" --stream
+```text
+agents/       Independent, complete agent experiments
+packages/     Code shared by at least two active agents
+archive/      Inactive material kept for reference
 ```
 
-The `--stream` mode requires Pi authentication. Pi stores session files under
-`~/.pi/agent/sessions/`.
-
-## Verify the package
-
-Run these commands from `apps/pi-agent`:
-
-```bash
-pnpm check
-pnpm test
-pnpm eval
-```
-
-The package requires Node.js 22.19.0 or later. See
-[apps/pi-agent/README.md](apps/pi-agent/README.md) for the profile schema,
-authentication details, and search behavior.
+Do not import code directly from another agent. Move proven shared code into `packages/`.

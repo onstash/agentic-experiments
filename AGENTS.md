@@ -2,29 +2,26 @@
 
 ## Scope
 
-This file applies to the repository unless a deeper `AGENTS.md` file gives more specific instructions.
+This file applies to the full repository. A deeper `AGENTS.md` file can add rules for one agent or package.
 
-## Language
+## Agent boundaries
 
-Write new and changed documentation in Simplified Technical English. Use short
-sentences, active voice, and one clear meaning for each term. Keep code,
-identifiers, commands, file paths, and quoted errors unchanged.
+- Put each agent in `agents/<agent-name>/`.
+- Keep each agent independent and complete.
+- Do not read from, import from, or modify another agent unless the user names it.
+- Keep an agent's tests, fixtures, schemas, documentation, lessons, references, and memory inside its directory.
+- Give each agent its own `AGENTS.md`, `README.md`, `MISSION.md`, and `MEMORY.md`.
 
-Use Simplified Technical English for writing guidance.
+## Shared code
 
-## Application boundaries
+- Add code to `packages/` only when at least two active agents use it.
+- Do not create shared abstractions for expected future use.
+- Use the root `pnpm-lock.yaml` for all JavaScript and TypeScript workspaces.
 
-- Keep `apps/pi-agent/` changes inside that application.
-- Follow the local rules in [apps/pi-agent/AGENTS.md](apps/pi-agent/AGENTS.md).
-- Do not read from, import from, or modify another application unless the user names it.
-- Keep tests, fixtures, schemas, and documentation with the application that owns them.
+## Documentation
+
+Write new and changed documentation in Simplified Technical English. Use short sentences and active voice.
 
 ## Verification
 
 Run the checks required by the nearest applicable `AGENTS.md` file before committing.
-
-## Memory files
-
-- [apps/pi-agent/MEMORY.md](apps/pi-agent/MEMORY.md) stores memory for the Pi opportunity agent.
-- [apps/typescript-agent/MEMORY.md](apps/typescript-agent/MEMORY.md) stores memory for the TypeScript learning agent.
-- [MEMORY.md](MEMORY.md) indexes both application memory files.
