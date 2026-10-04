@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lesson 2 — Bounded run history</title><link rel="stylesheet" href="../assets/course.css"></head>
+<body><main><p class="kicker">Lesson 2 · about 15 minutes</p><h1>Keep history without keeping everything</h1>
+<div class="goal"><strong>Win:</strong> <code>/profile</code> shows the five most recent completed agent runs, newest first.</div>
+<h2>Build on your event model</h2><p>Lesson 1 mapped events to changing state. This lesson changes the state shape: instead of overwriting one duration, each settled run becomes an immutable snapshot.</p>
+<pre><code>type RunProfile = {
+  durationMs: number
+  toolCount: number
+}
+
+const history: RunProfile[] = []</code></pre>
+<p>The snapshot matters. A run must keep the tool count it had when it finished; it must not read the mutable counter after a later run resets it.</p>
+<h2>The bounded-history algorithm</h2><pre><code>history.unshift(run)
+history.length = Math.min(history.length, HISTORY_LIMIT)</code></pre>
+<p><code>unshift</code> puts the newest result first. The next line truncates the array to five records. The data is tiny, so a plain array is clearer than a queue class or storage dependency.</p>
+<h2>Try it</h2>
+<div class="step"><span class="step-number">1</span><div><strong>Reload the updated source.</strong><pre><code>/reload</code></pre></div></div>
+<div class="step"><span class="step-number">2</span><div><strong>Complete three different prompts.</strong><p>Use tasks that invoke different numbers of tools. Simple file-list and file-read tasks are enough.</p></div></div>
+<div class="step"><span class="step-number">3</span><div><strong>Inspect the history.</strong><pre><code>/profile</code></pre><p>You should see three numbered rows with the newest run first.</p></div></div>
+<h2>Trace the data</h2><p>Open <a href="../src/index.ts"><code>src/index.ts</code></a> and follow one run:</p><pre><code>mutable working state
+  startedAt + toolCount
+          ↓ agent_settled
+immutable snapshot
+  { durationMs, toolCount }
+          ↓ unshift + truncate
+bounded history
+          ↓ /profile
+formatted notification</code></pre>
+<div class="check"><strong>Retrieval check</strong><p>Why does each history item store its own <code>toolCount</code> instead of reading the outer <code>toolCount</code> when <code>/profile</code> runs?</p><button data-reveal="answer-1">Reveal answer</button><p class="answer" id="answer-1">The outer counter changes on every run. A snapshot preserves the value that belonged to that completed run.</p></div>
+<h2>Make one change</h2><p>Change <code>HISTORY_LIMIT</code> from <code>5</code> to <code>3</code>. Reload, complete four runs, and confirm that <code>/profile</code> lists only three.</p><p>Then reload once more. The history disappears. That is not a bug yet: the array lives only inside this loaded extension instance. Lesson 3 will make it survive reloads and resumed sessions.</p>
+<h2>Keep nearby</h2><p>Review the <a href="../reference/extension-anatomy.html">extension anatomy reference</a>. Notice that persistence uses <code>pi.appendEntry()</code>; do not implement it yet.</p>
+<footer>Primary source: <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md">Pi extension documentation: state management</a>. Ask your teaching agent if the difference between working state and snapshots is unclear.</footer></main><script src="../assets/quiz.js"></script></body></html>
