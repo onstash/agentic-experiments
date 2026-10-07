@@ -6,7 +6,7 @@ import type { Checklist, TaskView } from "./types.js";
 export function checklistLines(state: Checklist): string[] {
   const views = viewChecklist(state);
   const done = views.filter((task) => task.status === "done").length;
-  const lines = [`☑ ${done}/${views.length} done`];
+  const lines = [`checklist: ☑ ${done}/${views.length} done`];
 
   for (const task of views) lines.push(taskLine(task));
 

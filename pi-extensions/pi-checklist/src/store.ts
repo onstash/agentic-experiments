@@ -83,22 +83,21 @@ export function reduceChecklist(state: Checklist, event: ChecklistEvent): Checkl
       if (event.dependsOn !== undefined) next.dependsOn = [...event.dependsOn];
       assertTask(next);
 
-      if (event.status !== undefined) {
-        assertTransition(current.status, event.status);
+      if (current.status !== next.status) assertTransition(current.status, next.status);
 
-        if (event.status === "ongoing" && state.tasks.some((task) => task.status === "ongoing")) {
-          throw new ChecklistError("invalid-transition", "Only one task can be ongoing");
-        }
-
-        if (
-          (event.status === "ongoing" || event.status === "done") &&
-          !isReady(next, state.tasks)
-        ) {
-          throw new ChecklistError("blocked-task", `Task ${event.taskId} is blocked`);
-        }
+      if (
+        next.status === "ongoing" &&
+        state.tasks.some((task) => task.id !== next.id && task.status === "ongoing")
+      ) {
+        throw new ChecklistError("invalid-transition", "Only one task can be ongoing");
       }
 
       const tasks = state.tasks.map((task) => (task.id === next.id ? next : task));
+
+      if ((next.status === "ongoing" || next.status === "done") && !isReady(next, tasks)) {
+        throw new ChecklistError("blocked-task", `Task ${event.taskId} is blocked`);
+      }
+
       validateDependencies(tasks);
 
       return { ...state, tasks };

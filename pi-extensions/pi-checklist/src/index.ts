@@ -1,6 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { registerChecklistCommand } from "./commands.js";
-import { renderWidget } from "./render.js";
+import { checklistLines, renderWidget } from "./render.js";
 import { replayEvents } from "./serialization.js";
 import { emptyChecklist, reduceChecklist, viewChecklist } from "./store.js";
 import type { Checklist, ChecklistEvent } from "./types.js";
@@ -27,11 +27,10 @@ type SessionEntry = {
   data?: unknown;
 };
 
-function eventsFromBranch(branch: readonly SessionEntry[]): ChecklistEvent[] {
-  return branch.reduce<ChecklistEvent[]>((events, entry) => {
+function eventsFromBranch(branch: readonly SessionEntry[]): unknown[] {
+  return branch.reduce<unknown[]>((events, entry) => {
     if (entry.type === "custom" && entry.customType === CUSTOM_TYPE && entry.data !== undefined) {
-      // SAFETY: session entries were written by this extension as ChecklistEvent values.
-      events.push(entry.data as ChecklistEvent);
+      events.push(entry.data);
     }
 
     return events;
@@ -57,25 +56,34 @@ function result(state: Checklist, text: string) {
 
 export default function piChecklist(pi: ExtensionAPI): void {
   let state = emptyChecklist();
+  let resetOffered = false;
 
   function refreshUi(ctx: ExtensionContext): void {
-    if (!ctx.hasUI || state.tasks.length === 0) {
-      ctx.ui.setWidget("checklist", undefined);
+    if (!ctx.hasUI) return;
 
-      return;
-    }
+    const lines = state.tasks.length ? checklistLines(state) : [];
+    ctx.ui.setStatus("checklist", lines[0]);
+    ctx.ui.setWidget(
+      "checklist",
+      lines.length === 0
+        ? undefined
+        : (_tui, theme) => {
+            const frozen = state;
 
-    const frozen = state;
-    ctx.ui.setWidget("checklist", (_tui, theme) => ({
-      render: (width) => renderWidget(frozen, theme, width),
-      invalidate: () => {},
-    }));
+            return {
+              render: (width) => renderWidget(frozen, theme, width),
+              invalidate: () => {},
+            };
+          },
+      { placement: "belowEditor" },
+    );
   }
 
   registerChecklistCommand(pi, {
     getState: () => state,
     clear: (ctx) => {
       state = emptyChecklist();
+      resetOffered = false;
       clearChecklist(pi);
       refreshUi(ctx);
     },
@@ -106,6 +114,7 @@ export default function piChecklist(pi: ExtensionAPI): void {
       const params = rawParams as CreateParams;
       const events = createEvents(params);
       state = applyEvents(emptyChecklist(), events);
+      resetOffered = false;
       persistEvents(pi, events);
       refreshUi(_ctx);
 
@@ -130,7 +139,10 @@ export default function piChecklist(pi: ExtensionAPI): void {
 
       const text = views.length
         ? views
-            .map((task) => `${task.status === "done" ? "✓" : "○"} ${task.id} ${task.title}`)
+            .map(
+              (task) =>
+                `${task.status === "done" ? "✓" : "○"} ${task.id} ${task.title}${task.blockedBy.length ? ` [blocked by ${task.blockedBy.join(", ")}]` : ""}`,
+            )
             .join("\n")
         : "checklist is empty";
 
@@ -153,6 +165,20 @@ export default function piChecklist(pi: ExtensionAPI): void {
       state = next;
       persistEvents(pi, events);
       refreshUi(ctx);
+
+      if (
+        state.tasks.length > 0 &&
+        state.tasks.every((task) => task.status === "done") &&
+        !resetOffered
+      ) {
+        resetOffered = true;
+
+        if (await ctx.ui.confirm("Checklist complete", "Clear this checklist?")) {
+          state = emptyChecklist();
+          clearChecklist(pi);
+          refreshUi(ctx);
+        }
+      }
 
       return result(state, taskSummary(state.tasks));
     },
