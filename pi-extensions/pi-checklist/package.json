@@ -16,17 +16,11 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "check": "pnpm format:check && pnpm lint && pnpm build",
-    "format": "oxfmt .",
-    "format:check": "oxfmt --check .",
-    "lint": "oxlint .",
     "test": "pnpm build && node --test tests/*.test.mjs",
     "clean": "rm -rf dist"
   },
   "devDependencies": {
     "@earendil-works/pi-coding-agent": "*",
-    "oxfmt": "^0.72.0",
-    "oxlint": "^1.87.0",
     "typescript": "^5.6.3"
   },
   "peerDependencies": {

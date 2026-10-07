@@ -6,7 +6,7 @@ A session-scoped checklist extension for Pi.
 
 ```sh
 pnpm install
-pnpm check
+pnpm verify
 pnpm test
 ```
 
