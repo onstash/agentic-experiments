@@ -1,4 +1,6 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { registerChecklistCommand } from "./commands.js";
+import { renderWidget } from "./render.js";
 import { replayEvents } from "./serialization.js";
 import { emptyChecklist, reduceChecklist, viewChecklist } from "./store.js";
 import type { Checklist, ChecklistEvent } from "./types.js";
@@ -44,6 +46,11 @@ function applyEvents(state: Checklist, events: readonly ChecklistEvent[]): Check
   return events.reduce(reduceChecklist, state);
 }
 
+function clearChecklist(pi: ExtensionAPI): void {
+  const event: ChecklistEvent = { version: 1, type: "checklist.cleared" };
+  pi.appendEntry(CUSTOM_TYPE, event);
+}
+
 function result(state: Checklist, text: string) {
   return { content: [{ type: "text" as const, text }], details: state };
 }
@@ -51,12 +58,36 @@ function result(state: Checklist, text: string) {
 export default function piChecklist(pi: ExtensionAPI): void {
   let state = emptyChecklist();
 
+  function refreshUi(ctx: ExtensionContext): void {
+    if (!ctx.hasUI || state.tasks.length === 0) {
+      ctx.ui.setWidget("checklist", undefined);
+
+      return;
+    }
+
+    const frozen = state;
+    ctx.ui.setWidget("checklist", (_tui, theme) => ({
+      render: (width) => renderWidget(frozen, theme, width),
+      invalidate: () => {},
+    }));
+  }
+
+  registerChecklistCommand(pi, {
+    getState: () => state,
+    clear: (ctx) => {
+      state = emptyChecklist();
+      clearChecklist(pi);
+      refreshUi(ctx);
+    },
+  });
+
   pi.on("session_start", (_event, ctx: ExtensionContext) => {
     // SAFETY: Pi returns session entries; this extension only reads the documented entry fields.
     const events = eventsFromBranch(ctx.sessionManager.getBranch() as SessionEntry[]);
 
     // SAFETY: session entries were written by this extension as ChecklistEvent values.
     state = replayEvents(events.map((event) => JSON.stringify(event)));
+    refreshUi(ctx);
   });
 
   pi.on("before_agent_start", (event) => ({
@@ -76,6 +107,7 @@ export default function piChecklist(pi: ExtensionAPI): void {
       const events = createEvents(params);
       state = applyEvents(emptyChecklist(), events);
       persistEvents(pi, events);
+      refreshUi(_ctx);
 
       return result(state, taskSummary(state.tasks));
     },
@@ -113,13 +145,14 @@ export default function piChecklist(pi: ExtensionAPI): void {
     promptSnippet: "Update checklist task status or details.",
     promptGuidelines: [PROMPT_GUIDANCE],
     parameters: ChecklistUpdateParams,
-    execute: async (_toolCallId, rawParams) => {
+    execute: async (_toolCallId, rawParams, _signal, _onUpdate, ctx) => {
       // SAFETY: Pi validates tool arguments against ChecklistUpdateParams before execute.
       const params = rawParams as UpdateParams;
       const events = updateEvents(params);
       const next = applyEvents(state, events);
       state = next;
       persistEvents(pi, events);
+      refreshUi(ctx);
 
       return result(state, taskSummary(state.tasks));
     },
