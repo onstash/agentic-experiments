@@ -23,6 +23,9 @@ importers:
 
   pi-extensions/pi-checklist:
     dependencies:
+      '@earendil-works/pi-tui':
+        specifier: ^1.0.4
+        version: 1.0.4
       typebox:
         specifier: ^1.3.36
         version: 1.3.36
