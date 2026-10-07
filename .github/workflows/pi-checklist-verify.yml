@@ -1,0 +1,57 @@
+name: Verify pi-checklist
+
+on:
+  pull_request:
+    paths:
+      - "pi-extensions/pi-checklist/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - ".oxlintrc.json"
+      - ".oxfmtrc.json"
+      - ".github/workflows/pi-checklist-verify.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "pi-extensions/pi-checklist/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - ".oxlintrc.json"
+      - ".oxfmtrc.json"
+      - ".github/workflows/pi-checklist-verify.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pi-extensions/pi-checklist
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+        working-directory: .
+
+      - run: pnpm exec oxfmt --check src '*.json'
+        working-directory: pi-extensions/pi-checklist
+
+      - run: pnpm exec oxlint src
+        working-directory: .
+
+      - run: pnpm build
+      - run: pnpm test
