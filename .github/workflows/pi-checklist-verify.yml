@@ -50,8 +50,11 @@ jobs:
       - run: pnpm exec oxfmt --check src '*.json'
         working-directory: pi-extensions/pi-checklist
 
-      - run: pnpm exec oxlint src
-        working-directory: .
+      - run: |
+          pwd
+          test -f src/index.ts
+          pnpm exec oxlint src
+        working-directory: pi-extensions/pi-checklist
 
       - run: pnpm build
       - run: pnpm test
