@@ -1,0 +1,10 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pi TUI Component Contract</title><link rel="stylesheet" href="../assets/course.css"></head><body><main><p class="kicker">Quick reference</p><h1>Pi TUI component contract</h1><div class="goal"><strong>A component turns available width and input into terminal lines and actions.</strong></div><h2>Minimum shape</h2><pre><code>class Panel {
+  render(width: number): string[] { return [] }
+  invalidate(): void {}
+  handleInput?(data: string): void
+}</code></pre><h2>Non-negotiable rule</h2><p>Every rendered line’s visible width must be less than or equal to the <code>width</code> passed to <code>render()</code>.</p><pre><code>const clipped = truncateToWidth(text, width)
+const columns = visibleWidth(clipped)</code></pre><p>ANSI color codes occupy bytes but no terminal columns. Use <code>visibleWidth()</code>, not <code>string.length</code>, when padding styled text.</p><h2>Overlay pattern</h2><pre><code>await ctx.ui.custom(
+  (_tui, theme, _keys, done) =&gt;
+    new Panel(theme, () =&gt; done(undefined)),
+  { overlay: true },
+)</code></pre><h2>Interaction defaults</h2><ul><li>Close temporary panels with Escape.</li><li>Use <code>matchesKey()</code>, not raw escape sequences.</li><li>Do not animate keyboard-driven overlays.</li><li>Snapshot displayed data when opening unless live updates are required.</li><li>Rebuild theme-colored caches in <code>invalidate()</code>.</li></ul><footer>Source: <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/tui.md">Pi TUI documentation</a></footer></main></body></html>

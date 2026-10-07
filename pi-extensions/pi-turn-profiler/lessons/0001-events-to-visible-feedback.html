@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lesson 1 — Events to visible feedback</title><link rel="stylesheet" href="../assets/course.css"></head>
+<body><main><p class="kicker">Lesson 1 · about 15 minutes</p><h1>Turn events into visible feedback</h1>
+<div class="goal"><strong>Win:</strong> by the end, Pi shows the latest agent-run duration and tool count in its footer.</div>
+<h2>The only model you need today</h2><p>A Pi extension is a TypeScript factory. Pi calls it once and gives it an <code>ExtensionAPI</code>. Your factory registers reactions to future events.</p>
+<pre><code>export default function extension(pi) {
+  pi.on("something_happened", (_event, ctx) =&gt; {
+    ctx.ui.setStatus("my-id", "visible feedback")
+  })
+}</code></pre>
+<p>That is inversion of control: your code does not run the agent. It tells Pi what to call later. The official <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md">extension documentation</a> defines the lifecycle and should be your primary reference.</p>
+<h2>Run the extension</h2>
+<div class="step"><span class="step-number">1</span><div><strong>Open a terminal in this workspace.</strong><pre><code>cd ~/Personal/Coding/pi-turn-profiler
+pi -e ./src/index.ts</code></pre></div></div>
+<div class="step"><span class="step-number">2</span><div><strong>Give Pi a tool-using task.</strong><pre><code>List the TypeScript files in this directory.</code></pre><p>Watch the footer change from <code>turn: running…</code> to a duration and tool count.</p></div></div>
+<div class="step"><span class="step-number">3</span><div><strong>Run the command.</strong><pre><code>/profile</code></pre><p>Pi should show the same latest-run metrics as a notification.</p></div></div>
+<h2>Trace the flow</h2><p>Open <a href="../src/index.ts"><code>src/index.ts</code></a>. Find these three transitions:</p><pre><code>agent_start
+  └─ reset clock and counter
+
+tool_execution_end
+  └─ increment counter
+
+agent_settled
+  └─ calculate duration and show final status</code></pre>
+<p><code>agent_settled</code> is intentional. Unlike <code>agent_end</code>, it runs only after automatic retries, compaction retries, and queued continuation have stopped.</p>
+<div class="check"><strong>Retrieval check</strong><p>Without reopening the source: which event should reset the timer, and which event should finalize it?</p><button data-reveal="answer-1">Reveal answer</button><p class="answer" id="answer-1"><code>agent_start</code> resets it; <code>agent_settled</code> finalizes it.</p></div>
+<h2>Make one change</h2><p>Change the completed footer text from <code>turn:</code> to <code>last:</code>. In the running Pi session, execute <code>/reload</code>, then run another prompt. This proves you can edit and hot-reload an extension.</p>
+<h2>Keep nearby</h2><p>Use the <a href="../reference/extension-anatomy.html">Pi extension anatomy reference</a> when you forget which API owns commands, tools, status, or persistence.</p>
+<footer>Primary source: <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/examples/extensions/status-line.ts">official status-line example</a>. Ask your teaching agent about any event or line that is unclear.</footer></main><script src="../assets/quiz.js"></script></body></html>

@@ -1,5 +1,20 @@
 {
   "name": "agentic-experiments",
   "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "oxfmt pi-extensions/pi-checklist/src pi-extensions/pi-checklist/*.json",
+    "format:check": "oxfmt --check pi-extensions/pi-checklist/src pi-extensions/pi-checklist/*.json",
+    "lint": "oxlint .",
+    "build": "pnpm --filter pi-checklist build",
+    "verify": "pnpm format:check && pnpm lint && pnpm build",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@oxlint/plugins": "^1.87.0",
+    "lefthook": "^2.1.17",
+    "oxfmt": "^0.72.0",
+    "oxlint": "^1.87.0"
+  },
   "packageManager": "pnpm@10.10.0"
 }

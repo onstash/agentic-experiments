@@ -1,0 +1,4 @@
+**/node_modules/**
+**/dist/**
+.agents/**
+tools/oxlint/anti-slop/**

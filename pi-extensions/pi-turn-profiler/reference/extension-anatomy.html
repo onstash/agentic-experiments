@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pi Extension Anatomy</title><link rel="stylesheet" href="../assets/course.css"></head>
+<body><main><p class="kicker">Quick reference</p><h1>Pi extension anatomy</h1>
+<div class="goal"><strong>The loop:</strong> register once → observe events → update state → render feedback.</div>
+<h2>Factory</h2><pre><code>export default function extension(pi: ExtensionAPI) {
+  // Register events, tools, and commands here.
+}</code></pre>
+<h2>Choose the smallest API</h2><ul><li><code>pi.on(name, handler)</code> — observe or alter lifecycle behavior</li><li><code>pi.registerCommand()</code> — user-triggered slash command</li><li><code>pi.registerTool()</code> — model-callable capability</li><li><code>ctx.ui.setStatus()</code> — compact footer state</li><li><code>ctx.ui.custom()</code> — interactive TUI; use only when simpler UI cannot work</li></ul>
+<h2>Events used by turn-profiler</h2><ul><li><code>agent_start</code> — reset the clock and counters</li><li><code>tool_execution_end</code> — count one completed tool execution</li><li><code>agent_settled</code> — finalize after retries and queued continuation stop</li></ul>
+<h2>Rules worth remembering</h2><ul><li>Start long-lived resources at <code>session_start</code>, not extension load.</li><li>Clean resources at <code>session_shutdown</code>.</li><li>Guard TUI-only UI with <code>ctx.mode === "tui"</code>.</li><li>Use <code>pi.appendEntry()</code> when state must survive reload or resume.</li><li>Prefer built-in TUI components before writing a custom component.</li></ul>
+<footer>Source: <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md">Pi extension documentation</a></footer></main></body></html>

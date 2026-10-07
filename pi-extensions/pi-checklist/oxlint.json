@@ -1,0 +1,16 @@
+{
+  "$schema": "https://oxc.rs schema/oxlint.json",
+  "plugins": ["eslint", "typescript", "unicorn"],
+  "rules": {
+    "correctness/no-unused-vars": "error",
+    "correctness/no-unreachable": "error",
+    "eslint/no-constant-binary-expression": "error",
+    "eslint/no-duplicate-imports": "error",
+    "eslint/no-self-assign": "error",
+    "eslint/no-unreachable-loop": "error",
+    "typescript/consistent-type-imports": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-non-null-assertion": "warn",
+    "unicorn/filename-case": ["error", { "case": "kebabCase" }]
+  }
+}

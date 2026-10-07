@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lesson 3 — Session-native persistence</title><link rel="stylesheet" href="../assets/course.css"></head>
+<body><main><p class="kicker">Lesson 3 · about 20 minutes</p><h1>Persist state in Pi’s session</h1>
+<div class="goal"><strong>Win:</strong> recent run profiles survive <code>/reload</code>, session resume, and branch navigation without a separate database.</div>
+<h2>Use the session as the source of truth</h2><p>An in-memory array is only a cache. Pi already owns a durable, branch-aware session log, so the extension records each completed run there:</p>
+<pre><code>const ENTRY_TYPE = "turn-profiler-run"
+
+pi.appendEntry(ENTRY_TYPE, run)</code></pre>
+<p>A custom entry is durable but does not enter the model’s context. This is the right fit for extension metadata that the UI needs but the LLM does not. See the official <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md#piappendentrycustomtype-data"><code>appendEntry()</code> reference</a>.</p>
+<h2>Persistence has two halves</h2><pre><code>write:   completed run → appendEntry()
+read:    session_start → getBranch() → rebuild history</code></pre>
+<p>Saving without rebuilding leaves reload broken. Rebuilding without saving leaves nothing to recover.</p>
+<h2>Why read the branch?</h2><p><code>getBranch()</code> returns only entries on the active path through the session tree. If you fork from an earlier point, profiles from the abandoned future must not appear in the fork.</p>
+<pre><code>getBranch()
+  → keep our custom entry type
+  → take the latest five
+  → reverse to newest-first
+  → replace the in-memory cache</code></pre>
+<h2>Try it</h2>
+<div class="step"><span class="step-number">1</span><div><strong>Load the persistent version.</strong><pre><code>/reload</code></pre><p>Older runs were never saved, so start with a fresh profile history.</p></div></div>
+<div class="step"><span class="step-number">2</span><div><strong>Complete two prompts, then inspect.</strong><pre><code>/profile</code></pre><p>Remember the first row’s duration and tool count.</p></div></div>
+<div class="step"><span class="step-number">3</span><div><strong>Destroy the memory cache.</strong><pre><code>/reload
+/profile</code></pre><p>The same rows should return because <code>session_start</code> reconstructed them from custom session entries.</p></div></div>
+<h2>Two restoration events</h2><ul><li><code>session_start</code> restores after startup, reload, resume, new session, or fork.</li><li><code>session_tree</code> restores when navigation changes the active branch.</li></ul><p>Both call the same restoration function. One state transition should have one implementation.</p>
+<div class="check"><strong>Retrieval check</strong><p>Why is <code>appendEntry()</code> alone insufficient for persistence?</p><button data-reveal="answer-1">Reveal answer</button><p class="answer" id="answer-1">It writes durable data, but a new extension instance must still read the active session branch and rebuild its in-memory state.</p></div>
+<h2>Make one change</h2><p>Temporarily remove the <code>session_start</code> handler, reload, and run <code>/profile</code>. Observe the empty cache. Restore the handler and reload again; the saved rows return.</p><p>This is a controlled failure: it proves that durable storage and state reconstruction solve different halves of the problem.</p>
+<h2>What we deliberately skipped</h2><p>No JSON file and no database. Session entries already follow Pi’s resume, fork, and tree behavior. External storage would require us to recreate those semantics.</p>
+<footer>Primary source: <a href="https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/docs/extensions.md#piappendentrycustomtype-data">Pi extension documentation: custom entries</a>. Ask your teaching agent if session branches or reconstruction are unclear.</footer></main><script src="../assets/quiz.js"></script></body></html>

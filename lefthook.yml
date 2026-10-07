@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      run: |
+        files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx|json|yaml|yml)$' | grep -Ev '^(\.agents|tools/oxlint/anti-slop)/' || true)
+        test -z "$files" || pnpm exec oxfmt --check $files
+    lint:
+      run: |
+        files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx)$' | grep -Ev '^(\.agents|tools/oxlint/anti-slop)/' || true)
+        test -z "$files" || pnpm exec oxlint $files
+    checklist-build:
+      glob: "pi-extensions/pi-checklist/**"
+      run: pnpm --filter pi-checklist build
