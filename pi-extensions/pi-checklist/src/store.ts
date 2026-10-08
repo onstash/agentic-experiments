@@ -25,7 +25,7 @@ function assertTransition(from: Status, to: Status): asserts to is Transition["t
   const allowed: Record<Status, readonly Status[]> = {
     planned: ["ongoing", "done", "cancelled"],
     ongoing: ["planned", "done", "cancelled"],
-    done: [],
+    done: ["planned"],
     cancelled: ["planned"],
   };
 
@@ -81,9 +81,24 @@ export function reduceChecklist(state: Checklist, event: ChecklistEvent): Checkl
       if (event.status !== undefined) next.status = event.status;
 
       if (event.dependsOn !== undefined) next.dependsOn = [...event.dependsOn];
+
+      if (event.verification !== undefined) {
+        if (event.verification === null) delete next.verification;
+        else next.verification = event.verification;
+      }
+
       assertTask(next);
 
       if (current.status !== next.status) assertTransition(current.status, next.status);
+
+      if (current.status !== "done" && next.status === "done" && !next.verification?.trim()) {
+        throw new ChecklistError(
+          "missing-verification",
+          `Task ${event.taskId} needs verification before it can be marked done`,
+        );
+      }
+
+      if (next.status === "planned") delete next.verification;
 
       if (
         next.status === "ongoing" &&

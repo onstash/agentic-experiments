@@ -19,7 +19,7 @@ import {
 const CUSTOM_TYPE = "pi-checklist";
 
 const PROMPT_GUIDANCE =
-  "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks.";
+  "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks. Mark a task done only after a real check and include its concise command/result in verification.";
 
 type SessionEntry = {
   type?: string;
@@ -105,7 +105,8 @@ export default function piChecklist(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "checklist_create",
     label: "Checklist Create",
-    description: "Create a session checklist. Replaces any existing checklist.",
+    description:
+      "Create a session checklist of up to five tasks. Replaces any existing checklist; requests over five tasks are rejected.",
     promptSnippet: "Create a checklist for multi-step work.",
     promptGuidelines: [PROMPT_GUIDANCE],
     parameters: ChecklistCreateParams,
@@ -125,7 +126,8 @@ export default function piChecklist(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "checklist_read",
     label: "Checklist Read",
-    description: "Read the current session checklist and dependency readiness.",
+    description:
+      "Read the current session checklist, dependency readiness, and completion verification.",
     promptSnippet: "Read the current checklist.",
     promptGuidelines: ["Use checklist_read when task IDs or blocked status are uncertain."],
     parameters: ChecklistReadParams,
@@ -141,7 +143,7 @@ export default function piChecklist(pi: ExtensionAPI): void {
         ? views
             .map(
               (task) =>
-                `${task.status === "done" ? "✓" : "○"} ${task.id} ${task.title}${task.blockedBy.length ? ` [blocked by ${task.blockedBy.join(", ")}]` : ""}`,
+                `${task.status === "done" ? "✓" : "○"} ${task.id} ${task.title}${task.blockedBy.length ? ` [blocked by ${task.blockedBy.join(", ")}]` : ""}${task.verification ? ` [verified: ${task.verification}]` : ""}`,
             )
             .join("\n")
         : "checklist is empty";
@@ -153,7 +155,8 @@ export default function piChecklist(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "checklist_update",
     label: "Checklist Update",
-    description: "Update checklist tasks atomically.",
+    description:
+      "Update checklist tasks atomically. Marking done requires verification; reset premature completion with status planned.",
     promptSnippet: "Update checklist task status or details.",
     promptGuidelines: [PROMPT_GUIDANCE],
     parameters: ChecklistUpdateParams,

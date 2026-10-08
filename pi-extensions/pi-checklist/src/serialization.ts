@@ -18,6 +18,7 @@ type ParsedRecord = {
   dependsOn?: unknown;
   id?: unknown;
   message?: unknown;
+  verification?: unknown;
 };
 
 function isRecord(value: unknown): value is ParsedRecord {
@@ -113,6 +114,14 @@ export function deserializeEvent(line: string): ChecklistEvent {
           }
 
           event.dependsOn = value.dependsOn;
+        }
+
+        if (value.verification !== undefined) {
+          if (value.verification !== null && !isString(value.verification)) {
+            throw new Error("invalid verification");
+          }
+
+          event.verification = value.verification;
         }
 
         return event;
