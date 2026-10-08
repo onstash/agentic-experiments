@@ -145,7 +145,7 @@ export function replayEvents(lines: Iterable<string>): Checklist {
     if (!line.trim()) continue;
 
     try {
-      state = reduceChecklist(state, deserializeEvent(line));
+      state = reduceChecklist(state, deserializeEvent(line), { allowLegacyUnverifiedDone: true });
     } catch (error) {
       if (error instanceof ChecklistError) {
         throw new ChecklistError(error.code, `Event ${index + 1}: ${error.message}`);

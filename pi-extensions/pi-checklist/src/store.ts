@@ -34,7 +34,11 @@ function assertTransition(from: Status, to: Status): asserts to is Transition["t
   }
 }
 
-export function reduceChecklist(state: Checklist, event: ChecklistEvent): Checklist {
+export function reduceChecklist(
+  state: Checklist,
+  event: ChecklistEvent,
+  options: { allowLegacyUnverifiedDone?: boolean } = {},
+): Checklist {
   if (event.version !== 1) throw new ChecklistError("invalid-event", "Unsupported event version");
   const byId = taskMap(state.tasks);
 
@@ -91,7 +95,12 @@ export function reduceChecklist(state: Checklist, event: ChecklistEvent): Checkl
 
       if (current.status !== next.status) assertTransition(current.status, next.status);
 
-      if (current.status !== "done" && next.status === "done" && !next.verification?.trim()) {
+      if (
+        !options.allowLegacyUnverifiedDone &&
+        current.status !== "done" &&
+        next.status === "done" &&
+        !next.verification?.trim()
+      ) {
         throw new ChecklistError(
           "missing-verification",
           `Task ${event.taskId} needs verification before it can be marked done`,

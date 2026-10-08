@@ -42,7 +42,7 @@ function persistEvents(pi: ExtensionAPI, events: readonly ChecklistEvent[]): voi
 }
 
 function applyEvents(state: Checklist, events: readonly ChecklistEvent[]): Checklist {
-  return events.reduce(reduceChecklist, state);
+  return events.reduce((current, event) => reduceChecklist(current, event), state);
 }
 
 function clearChecklist(pi: ExtensionAPI): void {
