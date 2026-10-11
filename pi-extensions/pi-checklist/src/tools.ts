@@ -29,6 +29,7 @@ export const ChecklistUpdateParams: TSchema = Type.Object({
         ]),
       ),
       dependsOn: Type.Optional(Type.Array(Type.String())),
+      verification: Type.Optional(Type.Union([Type.String(), Type.Null()])),
     }),
   ),
 });
@@ -45,6 +46,7 @@ export type UpdateParams = {
     title?: string;
     status?: Status;
     dependsOn?: string[];
+    verification?: string | null;
   }>;
 };
 
@@ -92,6 +94,8 @@ export function updateEvents(input: UpdateParams): ChecklistEvent[] {
     if (update.status !== undefined) event.status = update.status;
 
     if (update.dependsOn !== undefined) event.dependsOn = update.dependsOn;
+
+    if (update.verification !== undefined) event.verification = update.verification;
 
     return event;
   });

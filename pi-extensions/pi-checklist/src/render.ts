@@ -24,7 +24,14 @@ function taskLine(task: TaskView): string {
 
 export function renderWidget(state: Checklist, theme: Theme, width: number): string[] {
   return checklistLines(state).map((line, index) => {
-    const color = index === 0 ? "accent" : line.startsWith("●") ? "warning" : "text";
+    const color =
+      index === 0
+        ? "accent"
+        : line.startsWith("●")
+          ? "warning"
+          : line.startsWith("✓")
+            ? "success"
+            : "text";
 
     return truncateToWidth(theme.fg(color, line), width);
   });

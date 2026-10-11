@@ -18,6 +18,7 @@ type ParsedRecord = {
   dependsOn?: unknown;
   id?: unknown;
   message?: unknown;
+  verification?: unknown;
 };
 
 function isRecord(value: unknown): value is ParsedRecord {
@@ -115,6 +116,14 @@ export function deserializeEvent(line: string): ChecklistEvent {
           event.dependsOn = value.dependsOn;
         }
 
+        if (value.verification !== undefined) {
+          if (value.verification !== null && !isString(value.verification)) {
+            throw new Error("invalid verification");
+          }
+
+          event.verification = value.verification;
+        }
+
         return event;
       }
 
@@ -136,7 +145,7 @@ export function replayEvents(lines: Iterable<string>): Checklist {
     if (!line.trim()) continue;
 
     try {
-      state = reduceChecklist(state, deserializeEvent(line));
+      state = reduceChecklist(state, deserializeEvent(line), { allowLegacyUnverifiedDone: true });
     } catch (error) {
       if (error instanceof ChecklistError) {
         throw new ChecklistError(error.code, `Event ${index + 1}: ${error.message}`);

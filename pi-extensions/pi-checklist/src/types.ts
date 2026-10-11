@@ -7,7 +7,7 @@ export type TaskId = string;
 export type AllowedTransitions = {
   planned: "ongoing" | "done" | "cancelled";
   ongoing: "planned" | "done" | "cancelled";
-  done: never;
+  done: "planned";
   cancelled: "planned";
 };
 
@@ -22,6 +22,7 @@ export type Task = {
   title: string;
   status: Status;
   dependsOn: TaskId[];
+  verification?: string;
 };
 
 export type Checklist = {
@@ -38,6 +39,7 @@ export type ChecklistEvent =
       title?: string;
       status?: Status;
       dependsOn?: TaskId[];
+      verification?: string | null;
     }
   | { version: 1; type: "task.removed"; taskId: TaskId }
   | { version: 1; type: "checklist.cleared" };
@@ -55,7 +57,8 @@ export type ChecklistErrorCode =
   | "blocked-task"
   | "dependency-cycle"
   | "too-many-tasks"
-  | "invalid-event";
+  | "invalid-event"
+  | "missing-verification";
 
 export class ChecklistError extends Error {
   constructor(

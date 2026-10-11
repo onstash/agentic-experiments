@@ -23,9 +23,11 @@ pi --extension ./pi-extensions/pi-checklist/dist/index.js
 
 - `checklist_create` replaces the current checklist and creates up to five tasks.
 - `checklist_read` shows task status and dependency readiness.
-- `checklist_update` atomically changes task status, title, or dependencies.
+- `checklist_update` atomically changes task status, title, dependencies, or verification evidence.
 
-Only one task may be `ongoing`. Tasks cannot start while dependencies are incomplete.
+Only one task may be `ongoing`. Tasks cannot start while dependencies are incomplete. Marking a task `done` requires non-empty `verification` evidence. An unverified legacy `done` task can be reset to `planned`; resetting clears its verification evidence.
+
+The checklist supports at most five tasks. A larger create request is rejected without replacing the existing checklist.
 Task state is persisted as versioned events in the Pi session and replayed when the
 session resumes or changes branch.
 

@@ -19,7 +19,22 @@ import {
 const CUSTOM_TYPE = "pi-checklist";
 
 const PROMPT_GUIDANCE =
-  "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks.";
+  "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks. Mark a task done only after a real check and include its concise command/result in verification. Do not ask the user for permission to clear a fully verified checklist; clear it automatically.";
+
+function requiresChecklist(prompt: string): boolean {
+  const normalized = prompt.toLowerCase();
+
+  const action =
+    /\b(implement|build|create|add|fix|refactor|update|change|migrate|review|audit)\b/.test(
+      normalized,
+    );
+
+  const multipleSteps =
+    /\b(and|then|before|after|also|plus|verify|test|plan|steps?)\b/.test(normalized) ||
+    normalized.includes("\n");
+
+  return action && multipleSteps;
+}
 
 type SessionEntry = {
   type?: string;
@@ -42,7 +57,7 @@ function persistEvents(pi: ExtensionAPI, events: readonly ChecklistEvent[]): voi
 }
 
 function applyEvents(state: Checklist, events: readonly ChecklistEvent[]): Checklist {
-  return events.reduce(reduceChecklist, state);
+  return events.reduce((current, event) => reduceChecklist(current, event), state);
 }
 
 function clearChecklist(pi: ExtensionAPI): void {
@@ -56,7 +71,7 @@ function result(state: Checklist, text: string) {
 
 export default function piChecklist(pi: ExtensionAPI): void {
   let state = emptyChecklist();
-  let resetOffered = false;
+  let checklistRequired = false;
 
   function refreshUi(ctx: ExtensionContext): void {
     if (!ctx.hasUI) return;
@@ -83,7 +98,6 @@ export default function piChecklist(pi: ExtensionAPI): void {
     getState: () => state,
     clear: (ctx) => {
       state = emptyChecklist();
-      resetOffered = false;
       clearChecklist(pi);
       refreshUi(ctx);
     },
@@ -98,14 +112,38 @@ export default function piChecklist(pi: ExtensionAPI): void {
     refreshUi(ctx);
   });
 
-  pi.on("before_agent_start", (event) => ({
-    systemPrompt: `${event.systemPrompt}\n\n${PROMPT_GUIDANCE}`,
-  }));
+  pi.on("before_agent_start", (event) => {
+    checklistRequired = requiresChecklist(event.prompt);
+
+    return {
+      systemPrompt: `${event.systemPrompt}\n\n${PROMPT_GUIDANCE}${
+        checklistRequired && state.tasks.length === 0
+          ? " This request requires a checklist before making changes. Create it before using mutation tools."
+          : ""
+      }`,
+    };
+  });
+
+  pi.on("tool_call", (event) => {
+    if (!checklistRequired || state.tasks.length > 0) return;
+
+    const isChecklistTool = event.toolName.startsWith("checklist_");
+    const isReadOnlyTool = ["read", "grep", "find", "ls"].includes(event.toolName);
+
+    if (!isChecklistTool && !isReadOnlyTool) {
+      return {
+        block: true,
+        reason:
+          "Create a checklist before using mutation or execution tools for this multi-step request.",
+      };
+    }
+  });
 
   pi.registerTool({
     name: "checklist_create",
     label: "Checklist Create",
-    description: "Create a session checklist. Replaces any existing checklist.",
+    description:
+      "Create a session checklist of up to five tasks. Replaces any existing checklist; requests over five tasks are rejected.",
     promptSnippet: "Create a checklist for multi-step work.",
     promptGuidelines: [PROMPT_GUIDANCE],
     parameters: ChecklistCreateParams,
@@ -114,7 +152,6 @@ export default function piChecklist(pi: ExtensionAPI): void {
       const params = rawParams as CreateParams;
       const events = createEvents(params);
       state = applyEvents(emptyChecklist(), events);
-      resetOffered = false;
       persistEvents(pi, events);
       refreshUi(_ctx);
 
@@ -125,7 +162,8 @@ export default function piChecklist(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "checklist_read",
     label: "Checklist Read",
-    description: "Read the current session checklist and dependency readiness.",
+    description:
+      "Read the current session checklist, dependency readiness, and completion verification.",
     promptSnippet: "Read the current checklist.",
     promptGuidelines: ["Use checklist_read when task IDs or blocked status are uncertain."],
     parameters: ChecklistReadParams,
@@ -141,7 +179,7 @@ export default function piChecklist(pi: ExtensionAPI): void {
         ? views
             .map(
               (task) =>
-                `${task.status === "done" ? "✓" : "○"} ${task.id} ${task.title}${task.blockedBy.length ? ` [blocked by ${task.blockedBy.join(", ")}]` : ""}`,
+                `${task.status === "done" ? "✓" : "○"} ${task.id} ${task.title}${task.blockedBy.length ? ` [blocked by ${task.blockedBy.join(", ")}]` : ""}${task.verification ? ` [verified: ${task.verification}]` : ""}`,
             )
             .join("\n")
         : "checklist is empty";
@@ -153,7 +191,8 @@ export default function piChecklist(pi: ExtensionAPI): void {
   pi.registerTool({
     name: "checklist_update",
     label: "Checklist Update",
-    description: "Update checklist tasks atomically.",
+    description:
+      "Update checklist tasks atomically. Marking done requires verification; reset premature completion with status planned.",
     promptSnippet: "Update checklist task status or details.",
     promptGuidelines: [PROMPT_GUIDANCE],
     parameters: ChecklistUpdateParams,
@@ -166,18 +205,10 @@ export default function piChecklist(pi: ExtensionAPI): void {
       persistEvents(pi, events);
       refreshUi(ctx);
 
-      if (
-        state.tasks.length > 0 &&
-        state.tasks.every((task) => task.status === "done") &&
-        !resetOffered
-      ) {
-        resetOffered = true;
-
-        if (await ctx.ui.confirm("Checklist complete", "Clear this checklist?")) {
-          state = emptyChecklist();
-          clearChecklist(pi);
-          refreshUi(ctx);
-        }
+      if (state.tasks.length > 0 && state.tasks.every((task) => task.status === "done")) {
+        state = emptyChecklist();
+        clearChecklist(pi);
+        refreshUi(ctx);
       }
 
       return result(state, taskSummary(state.tasks));
