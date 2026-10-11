@@ -71,7 +71,6 @@ function result(state: Checklist, text: string) {
 
 export default function piChecklist(pi: ExtensionAPI): void {
   let state = emptyChecklist();
-  let resetOffered = false;
   let checklistRequired = false;
 
   function refreshUi(ctx: ExtensionContext): void {
@@ -99,7 +98,6 @@ export default function piChecklist(pi: ExtensionAPI): void {
     getState: () => state,
     clear: (ctx) => {
       state = emptyChecklist();
-      resetOffered = false;
       clearChecklist(pi);
       refreshUi(ctx);
     },
@@ -154,7 +152,6 @@ export default function piChecklist(pi: ExtensionAPI): void {
       const params = rawParams as CreateParams;
       const events = createEvents(params);
       state = applyEvents(emptyChecklist(), events);
-      resetOffered = false;
       persistEvents(pi, events);
       refreshUi(_ctx);
 
@@ -208,18 +205,10 @@ export default function piChecklist(pi: ExtensionAPI): void {
       persistEvents(pi, events);
       refreshUi(ctx);
 
-      if (
-        state.tasks.length > 0 &&
-        state.tasks.every((task) => task.status === "done") &&
-        !resetOffered
-      ) {
-        resetOffered = true;
-
-        if (await ctx.ui.confirm("Checklist complete", "Clear this checklist?")) {
-          state = emptyChecklist();
-          clearChecklist(pi);
-          refreshUi(ctx);
-        }
+      if (state.tasks.length > 0 && state.tasks.every((task) => task.status === "done")) {
+        state = emptyChecklist();
+        clearChecklist(pi);
+        refreshUi(ctx);
       }
 
       return result(state, taskSummary(state.tasks));
