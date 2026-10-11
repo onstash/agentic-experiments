@@ -19,7 +19,7 @@ import {
 const CUSTOM_TYPE = "pi-checklist";
 
 const PROMPT_GUIDANCE =
-  "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks. Mark a task done only after a real check and include its concise command/result in verification.";
+  "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks. Mark a task done only after a real check and include its concise command/result in verification. Do not ask the user for permission to clear a fully verified checklist; clear it automatically.";
 
 function requiresChecklist(prompt: string): boolean {
   const normalized = prompt.toLowerCase();
