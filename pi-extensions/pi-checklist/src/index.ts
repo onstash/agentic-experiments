@@ -21,6 +21,21 @@ const CUSTOM_TYPE = "pi-checklist";
 const PROMPT_GUIDANCE =
   "For multi-step work, use the checklist tools. Keep exactly one task ongoing; finish or cancel it before starting another. Do not start blocked tasks. Mark a task done only after a real check and include its concise command/result in verification.";
 
+function requiresChecklist(prompt: string): boolean {
+  const normalized = prompt.toLowerCase();
+
+  const action =
+    /\b(implement|build|create|add|fix|refactor|update|change|migrate|review|audit)\b/.test(
+      normalized,
+    );
+
+  const multipleSteps =
+    /\b(and|then|before|after|also|plus|verify|test|plan|steps?)\b/.test(normalized) ||
+    normalized.includes("\n");
+
+  return action && multipleSteps;
+}
+
 type SessionEntry = {
   type?: string;
   customType?: string;
@@ -57,6 +72,7 @@ function result(state: Checklist, text: string) {
 export default function piChecklist(pi: ExtensionAPI): void {
   let state = emptyChecklist();
   let resetOffered = false;
+  let checklistRequired = false;
 
   function refreshUi(ctx: ExtensionContext): void {
     if (!ctx.hasUI) return;
@@ -98,9 +114,32 @@ export default function piChecklist(pi: ExtensionAPI): void {
     refreshUi(ctx);
   });
 
-  pi.on("before_agent_start", (event) => ({
-    systemPrompt: `${event.systemPrompt}\n\n${PROMPT_GUIDANCE}`,
-  }));
+  pi.on("before_agent_start", (event) => {
+    checklistRequired = requiresChecklist(event.prompt);
+
+    return {
+      systemPrompt: `${event.systemPrompt}\n\n${PROMPT_GUIDANCE}${
+        checklistRequired && state.tasks.length === 0
+          ? " This request requires a checklist before making changes. Create it before using mutation tools."
+          : ""
+      }`,
+    };
+  });
+
+  pi.on("tool_call", (event) => {
+    if (!checklistRequired || state.tasks.length > 0) return;
+
+    const isChecklistTool = event.toolName.startsWith("checklist_");
+    const isReadOnlyTool = ["read", "grep", "find", "ls"].includes(event.toolName);
+
+    if (!isChecklistTool && !isReadOnlyTool) {
+      return {
+        block: true,
+        reason:
+          "Create a checklist before using mutation or execution tools for this multi-step request.",
+      };
+    }
+  });
 
   pi.registerTool({
     name: "checklist_create",

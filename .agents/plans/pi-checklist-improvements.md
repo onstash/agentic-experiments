@@ -1,7 +1,7 @@
 # Plan: pi-checklist reliability, scale, and agent ergonomics
 
 ## Status
-Draft
+In progress — implementation landed; UI/API review and regression coverage remain
 
 ## Objective
 Improve `pi-checklist` so that:
@@ -43,9 +43,9 @@ Improve `pi-checklist` so that:
 
 - [ ] Inspect the latest Desktop screenshot and reproduce the widget in Pi's light theme.
 - [ ] Confirm whether the root cause is theme color selection, completed-state styling, or both.
-- [ ] Prefer Pi theme roles over hard-coded ANSI colors.
-- [ ] Make completed rows visually distinct while retaining readable contrast.
-- [ ] Preserve width truncation and Unicode-safe output.
+- [x] Prefer Pi theme roles over hard-coded ANSI colors.
+- [x] Make completed rows visually distinct while retaining readable contrast.
+- [x] Preserve width truncation and Unicode-safe output.
 - [ ] Add or update render tests for header, ongoing, blocked, planned, and done rows.
 - [ ] Verify both light and dark themes if the available test surface allows it.
 
@@ -60,13 +60,13 @@ Improve `pi-checklist` so that:
 
 First determine whether five is a product constraint or only an implementation constraint. Do not silently truncate or silently drop tasks.
 
-- [ ] Trace validation through `ChecklistCreateParams`, command/tool handlers, store validation, and event creation.
+- [x] Trace validation through `ChecklistCreateParams`, command/tool handlers, store validation, and event creation.
 - [ ] Confirm the current behavior for `0`, `1`, `5`, and `6` tasks.
-- [ ] Choose one explicit policy:
+- [x] Choose one explicit policy:
   - **Recommended default:** reject more than five with `too-many-tasks`, return the accepted maximum, and preserve the existing checklist.
   - Allow more than five only if the widget, tool output, and tests are intentionally redesigned for larger lists.
-- [ ] Make the limit discoverable in the tool description, schema-facing documentation, README, and error message.
-- [ ] Ensure failed creation is atomic: no clear event or partial additions are persisted.
+- [x] Make the limit discoverable in the tool description, schema-facing documentation, README, and error message.
+- [x] Ensure failed creation is atomic: no clear event or partial additions are persisted.
 - [ ] Add tests for six tasks, retry after rejection, and preservation of the previous checklist.
 
 **Acceptance criteria**
@@ -79,19 +79,19 @@ First determine whether five is a product constraint or only an implementation c
 
 A status flag alone cannot prove that work happened. Keep the checklist state simple, but require evidence at the agent/API boundary.
 
-- [ ] Define “done” as a claim that must include a short verification note or evidence reference, rather than proof inferred from the model's text.
-- [ ] Decide the minimum durable representation:
+- [x] Define “done” as a claim that must include a short verification note or evidence reference, rather than proof inferred from the model's text.
+- [x] Decide the minimum durable representation:
   - preferred minimal option: add `evidence` or `verification` to a done update;
   - avoid storing large logs in checklist events; store concise commands, test names, commit IDs, or file references.
-- [ ] Specify whether evidence is required for every task or only when moving to `done`.
-- [ ] Reject `done` transitions without required evidence, or mark them `claimed` until verification is recorded. Choose one model before implementation.
-- [ ] Fix the state machine so every terminal-looking completion can be corrected: a task marked `done` without valid verification must be resettable to `planned` (or an explicitly named equivalent), without deleting the task or recreating the checklist.
-- [ ] Define the allowed reverse transition and its guard conditions. The reset must clear stale completion evidence, preserve task identity and dependencies, and return an actionable result.
-- [ ] Ensure invalid transitions are rejected consistently, including `done → planned` when the task is genuinely verified if that transition is not allowed by the selected model.
-- [ ] Provide a read result that includes the evidence and verification state.
-- [ ] Document that the checklist extension validates declared evidence, not truth independently.
-- [ ] Add tests for missing evidence, valid evidence, repeated updates, dependency progression, and recovery from an unverified `done` state to `planned`.
-- [ ] Add an agent-facing instruction: after implementation, run the relevant check, report its exact command/result, then mark the task done; if completion was premature or unverified, reset it instead of creating a replacement task.
+- [x] Specify whether evidence is required only when moving to `done`.
+- [x] Reject `done` transitions without required evidence.
+- [x] Fix the state machine so every terminal-looking completion can be corrected: a task marked `done` without valid verification can be reset to `planned` without deleting the task or recreating the checklist.
+- [x] Define the reverse transition: reset clears stale completion evidence and preserves task identity and dependencies.
+- [x] Ensure invalid transitions are rejected consistently, including recovery through the documented `done → planned` transition.
+- [x] Provide a read result that includes the evidence and verification state.
+- [x] Document that the checklist extension validates declared evidence, not truth independently.
+- [ ] Add tests for valid evidence, repeated updates, and dependency progression; recovery and missing-evidence tests are present.
+- [x] Add an agent-facing instruction: run the relevant check, report its exact command/result, then mark the task done; reset premature completion instead of creating a replacement task.
 
 **Important boundary**
 
@@ -135,8 +135,8 @@ For each surface, answer:
 
 - [ ] Build a small API behavior table with inputs, outputs, errors, and examples.
 - [ ] Remove or rename only after checking all callers and persisted event compatibility.
-- [ ] Prefer additive, backwards-compatible changes where event replay or existing sessions are affected.
-- [ ] Update tool descriptions before adding new abstractions.
+- [x] Prefer additive, backwards-compatible changes where event replay or existing sessions are affected.
+- [x] Update tool descriptions before adding new abstractions.
 - [ ] Keep the command read-only unless a concrete agent workflow requires mutation.
 - [ ] Add one end-to-end test for the intended agent workflow.
 
@@ -174,18 +174,18 @@ pi --extension ./pi-extensions/pi-checklist/dist/index.js
 
 ## Open decisions
 
-- [ ] Is five a deliberate UI limit, or should the widget support paging/scrolling?
-- [ ] Should completion evidence be required, or should the API distinguish `claimed` from `verified`?
-- [ ] Can evidence be a short string, or is a structured object needed?
-- [ ] Which checks are safe to automate, if any?
-- [ ] Must old persisted events replay unchanged after the API changes?
+- [x] Five remains a deliberate limit; larger-list paging/scrolling is out of scope.
+- [x] Completion evidence is required when moving to `done`; a separate `claimed` status is not introduced.
+- [x] Evidence is a concise string.
+- [ ] Which checks are safe to automate, if any? No automation is planned without a concrete check contract.
+- [x] Old persisted events replay unchanged; legacy unverified `done` events remain readable.
 
 ## Completion criteria
 
-- [ ] Light-theme issue fixed and tested.
-- [ ] More-than-five behavior is explicit, atomic, documented, and tested.
-- [ ] Completion validation policy is decided, implemented, documented, and tested.
+- [ ] Light-theme issue fixed and tested; implementation is present, but dedicated render/manual checks remain.
+- [ ] More-than-five behavior is explicit, atomic, documented, and tested; dedicated boundary tests remain.
+- [x] Completion validation policy is decided, implemented, documented, and tested for the core path.
 - [ ] API review is recorded with before/after decisions.
-- [ ] Ponytail simplification review finds no unnecessary new abstraction.
-- [ ] Required checks pass.
-- [ ] README describes the final agent workflow.
+- [x] Ponytail simplification review found no unnecessary new abstraction in the implementation.
+- [x] Required checks pass.
+- [x] README describes the final agent workflow.
