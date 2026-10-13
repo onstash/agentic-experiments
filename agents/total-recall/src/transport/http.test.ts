@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { handleHttpRequest } from "./http.ts";
+import { createHttpHandler } from "./http.ts";
 
-const jsonHeaders = { "Content-Type": "application/json" };
+const jsonHeaders = {
+  "Content-Type": "application/json",
+  Authorization: "Bearer test-token",
+};
+
+const handleHttpRequest = createHttpHandler({
+  authenticate: async (token) => token === "test-token",
+});
 
 test("rejects non-POST requests", async () => {
   const response = await handleHttpRequest(new Request("http://localhost/mcp"));
@@ -12,11 +19,35 @@ test("rejects non-POST requests", async () => {
   assert.equal(response.headers.get("Allow"), "POST");
 });
 
-test("rejects unsupported content types", async () => {
+test("rejects missing authorization", async () => {
   const response = await handleHttpRequest(
     new Request("http://localhost/mcp", {
       method: "POST",
-      headers: { "Content-Type": "text/plain" },
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    }),
+  );
+
+  assert.equal(response.status, 401);
+});
+
+test("rejects invalid authorization", async () => {
+  const response = await handleHttpRequest(
+    new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: { ...jsonHeaders, Authorization: "Bearer wrong-token" },
+      body: "{}",
+    }),
+  );
+
+  assert.equal(response.status, 401);
+});
+
+test("rejects unsupported content types after authorization", async () => {
+  const response = await handleHttpRequest(
+    new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: { Authorization: "Bearer test-token", "Content-Type": "text/plain" },
       body: "{}",
     }),
   );
