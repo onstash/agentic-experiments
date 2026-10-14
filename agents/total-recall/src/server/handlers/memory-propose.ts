@@ -24,6 +24,9 @@ export function createMemoryProposeHandler(client: LifeOsClient): ToolHandler {
 }
 
 const placeholderClient: LifeOsClient = {
+  async getProposal(): Promise<MemoryProposalResult> {
+    throw new Error("Life OS client not configured");
+  },
   async proposeMemory(): Promise<MemoryProposalResult> {
     return {
       proposalId: crypto.randomUUID(),

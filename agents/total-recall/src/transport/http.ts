@@ -1,12 +1,19 @@
+/* Raw JSON is parsed by the MCP server boundary. */
+/* oxlint-disable anti-slop/no-unknown-parameters */
+
 import type { JsonRpcResponse } from "../protocol/json-rpc.ts";
 import { handleMessage } from "../server/mcp-server.ts";
 
 export type Authenticate = (token: string) => Promise<boolean>;
 
+export type MessageHandler = (input: unknown) => Promise<JsonRpcResponse<unknown>>;
+
 export function createHttpHandler({
   authenticate,
+  messageHandler = handleMessage,
 }: {
   authenticate: Authenticate;
+  messageHandler?: MessageHandler;
 }): (request: Request) => Promise<Response> {
   return async function handleHttpRequest(request: Request): Promise<Response> {
     if (request.method !== "POST") {
@@ -38,7 +45,7 @@ export function createHttpHandler({
       });
     }
 
-    return jsonResponse(await handleMessage(input));
+    return jsonResponse(await messageHandler(input));
   };
 }
 

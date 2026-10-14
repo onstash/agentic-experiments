@@ -9,7 +9,7 @@ import type {
   ToolsCallRequest,
   ToolsCallResult,
 } from "../protocol/methods.ts";
-import { callTool } from "./dispatcher.ts";
+import { callTool, type ToolDispatcher } from "./dispatcher.ts";
 import { listTools } from "./registry.ts";
 
 function success<TResult>(id: JsonRpcRequest["id"], result: TResult): JsonRpcResponse<TResult> {
@@ -35,6 +35,7 @@ function isToolsCallRequest(params: unknown): params is ToolsCallRequest {
 
 export async function handleMessage(
   input: unknown,
+  dispatch: ToolDispatcher = callTool,
 ): Promise<JsonRpcResponse<InitializeResult | ListToolsResult | ToolsCallResult>> {
   const parsed = parseJsonRpcRequest(input);
 
@@ -46,11 +47,12 @@ export async function handleMessage(
     };
   }
 
-  return handleRequest(parsed.request);
+  return handleRequest(parsed.request, dispatch);
 }
 
 export async function handleRequest(
   request: JsonRpcRequest,
+  dispatch: ToolDispatcher = callTool,
 ): Promise<JsonRpcResponse<InitializeResult | ListToolsResult | ToolsCallResult>> {
   if (request.method === "initialize") {
     return success(request.id, {
@@ -69,7 +71,7 @@ export async function handleRequest(
       return failure(request.id, -32602, "Invalid tools/call params");
     }
 
-    return success(request.id, await callTool(request.params));
+    return success(request.id, await dispatch(request.params));
   }
 
   return failure(request.id, -32601, `Method not found: ${request.method}`);
