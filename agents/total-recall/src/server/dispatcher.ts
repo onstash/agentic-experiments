@@ -2,7 +2,7 @@
 /* oxlint-disable anti-slop/no-unsafe-dictionary-type, anti-slop/no-known-value-widening, anti-slop/no-unknown-parameters */
 
 import type { CallToolRequest, CallToolResult } from "../protocol/tools.ts";
-import { validateMemoryGetProposal } from "../validation/memory-get-proposal.ts";
+import { validateMemoryGetProposal, type JsonValue } from "../validation/memory-get-proposal.ts";
 import {
   validateMemoryProposal,
   type MemoryValidationResult,
@@ -11,7 +11,7 @@ import { handleMemoryPropose, type ToolHandler } from "./handlers/memory-propose
 
 export type ToolDispatcher = (request: CallToolRequest) => Promise<CallToolResult>;
 
-const validators: Record<string, (input: unknown) => MemoryValidationResult> = {
+const validators: Record<string, (input: JsonValue) => MemoryValidationResult> = {
   "memory.propose": validateMemoryProposal,
   "memory.get_proposal": validateMemoryGetProposal,
 };
@@ -49,7 +49,8 @@ async function dispatchTool(
   const validate = validators[request.name];
 
   if (validate) {
-    const validation = validate(argumentsValue);
+    // SAFETY: MCP arguments are JSON values parsed by the protocol boundary.
+    const validation = validate(argumentsValue as JsonValue);
 
     if (!validation.valid) {
       return {
