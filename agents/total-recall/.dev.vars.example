@@ -1,0 +1,2 @@
+# Copy to .dev.vars and replace with a locally generated secret.
+TOTAL_RECALL_TOKEN=replace-with-a-secret

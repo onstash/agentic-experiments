@@ -6,9 +6,7 @@ import {
   validateMemoryProposal,
   type MemoryValidationResult,
 } from "../validation/memory-propose.ts";
-import { handleMemoryPropose } from "./handlers/memory-propose.ts";
-
-export type ToolHandler = (args: Record<string, unknown>) => Promise<CallToolResult>;
+import { handleMemoryPropose, type ToolHandler } from "./handlers/memory-propose.ts";
 
 const handlers: Record<string, ToolHandler> = {
   "memory.propose": handleMemoryPropose,

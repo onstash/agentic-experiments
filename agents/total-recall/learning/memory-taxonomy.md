@@ -1,12 +1,12 @@
 Remember
-  ├── Fact
-  ├── Preference
-  ├── Rule
-  └── Project context
+├── Fact
+├── Preference
+├── Rule
+└── Project context
 
-  Do       → tasks and goals
-  Session  → temporary working context
-  History  → episodic events
+Do → tasks and goals
+Session → temporary working context
+History → episodic events
 
 ## Approval rule
 
