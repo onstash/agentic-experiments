@@ -2,6 +2,7 @@
 /* oxlint-disable anti-slop/no-unknown-parameters */
 
 import { createLifeOsHttpClient } from "./life-os/http-client.ts";
+import { createMemoryDecideProposalHandler } from "./server/handlers/memory-decide-proposal.ts";
 import { createMemoryGetProposalHandler } from "./server/handlers/memory-get-proposal.ts";
 import { createMemoryProposeHandler } from "./server/handlers/memory-propose.ts";
 import { createToolDispatcher } from "./server/dispatcher.ts";
@@ -24,6 +25,7 @@ export default {
     const dispatch = createToolDispatcher({
       "memory.propose": createMemoryProposeHandler(lifeOsClient),
       "memory.get_proposal": createMemoryGetProposalHandler(lifeOsClient),
+      "memory.decide_proposal": createMemoryDecideProposalHandler(lifeOsClient),
     });
 
     const messageHandler = (input: unknown) => handleMessage(input, dispatch);

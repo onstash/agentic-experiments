@@ -19,6 +19,9 @@ export function createMemoryGetProposalHandler(client: LifeOsClient): ToolHandle
 }
 
 export const handleMemoryGetProposal = createMemoryGetProposalHandler({
+  async decideProposal() {
+    throw new Error("Life OS client not configured");
+  },
   async proposeMemory() {
     throw new Error("Life OS client not configured");
   },

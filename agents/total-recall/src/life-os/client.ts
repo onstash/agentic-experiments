@@ -9,7 +9,13 @@ export type LifeOsProposeMemoryRequest = MemoryProposalInput;
 
 export type LifeOsProposeMemoryResponse = MemoryProposalResult;
 
+export type LifeOsDecision = "approve" | "reject";
+
 export type LifeOsClient = {
   proposeMemory(input: LifeOsProposeMemoryRequest): Promise<LifeOsProposeMemoryResponse>;
   getProposal(proposalId: string): Promise<LifeOsProposeMemoryResponse>;
+  decideProposal(
+    proposalId: string,
+    decision: LifeOsDecision,
+  ): Promise<LifeOsProposeMemoryResponse>;
 };
