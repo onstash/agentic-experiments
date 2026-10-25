@@ -35,3 +35,13 @@ test("rejects requests with the wrong Worker environment token", async () => {
 
   assert.equal(response.status, 401);
 });
+
+test("serves MCP only from /mcp", async () => {
+  const rootRequest = new Request("https://total-recall.test", {
+    method: "POST",
+  });
+
+  const response = await worker.fetch(rootRequest, env);
+
+  assert.equal(response.status, 404);
+});

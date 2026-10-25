@@ -21,6 +21,10 @@ export type Env = {
 
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
+    if (new URL(request.url).pathname !== "/mcp") {
+      return Promise.resolve(new Response("Not Found", { status: 404 }));
+    }
+
     const lifeOsClient = createLifeOsHttpClient({
       baseUrl: env.LIFE_OS_BASE_URL,
       fetch: env.LIFE_OS?.fetch.bind(env.LIFE_OS),
