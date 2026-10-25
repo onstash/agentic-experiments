@@ -16,6 +16,7 @@ Create `agents/total-recall/.dev.vars` manually:
 
 ```text
 TOTAL_RECALL_TOKEN=<generated-token>
+LIFE_OS_SERVICE_TOKEN=<Life OS Total Recall service token>
 ```
 
 `.dev.vars` is ignored by Git. Start Wrangler from the Total Recall directory:
@@ -33,10 +34,13 @@ Set the secret interactively so it is not placed in shell history or source:
 
 ```sh
 pnpm wrangler secret put TOTAL_RECALL_TOKEN
+pnpm wrangler secret put LIFE_OS_SERVICE_TOKEN
 ```
 
 Paste the generated token only into Wrangler's prompt. Rotate it by running the
 same command with a new token, then update the client-side secret store.
 
-The Worker compares the presented bearer token to the secret at runtime. The
-secret is never persisted in D1, returned in responses, or included in logs.
+The Worker compares the presented MCP bearer token to `TOTAL_RECALL_TOKEN` at
+runtime. It sends `LIFE_OS_SERVICE_TOKEN` only to Life OS for proposal creation
+and lookup. Neither secret is persisted in D1, returned in responses, or
+included in logs.

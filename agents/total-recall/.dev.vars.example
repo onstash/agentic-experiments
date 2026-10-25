@@ -1,4 +1,4 @@
 # Copy to .dev.vars and replace with a locally generated secret.
 TOTAL_RECALL_TOKEN=replace-with-a-secret
 LIFE_OS_BASE_URL=http://localhost:8787
-LIFE_OS_TOKEN=replace-with-a-private-life-os-token
+LIFE_OS_SERVICE_TOKEN=replace-with-a-private-life-os-service-token

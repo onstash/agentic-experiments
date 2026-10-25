@@ -6,7 +6,7 @@ import worker, { type Env } from "./worker.ts";
 const env: Env = {
   TOTAL_RECALL_TOKEN: "test-token",
   LIFE_OS_BASE_URL: "https://life-os.example",
-  LIFE_OS_TOKEN: "life-os-token",
+  LIFE_OS_SERVICE_TOKEN: "life-os-service-token",
 };
 
 function request(token: string): Request {

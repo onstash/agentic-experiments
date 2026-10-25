@@ -2,7 +2,6 @@
 /* oxlint-disable anti-slop/no-unknown-parameters */
 
 import { createLifeOsHttpClient } from "./life-os/http-client.ts";
-import { createMemoryDecideProposalHandler } from "./server/handlers/memory-decide-proposal.ts";
 import { createMemoryGetProposalHandler } from "./server/handlers/memory-get-proposal.ts";
 import { createMemoryProposeHandler } from "./server/handlers/memory-propose.ts";
 import { createToolDispatcher } from "./server/dispatcher.ts";
@@ -12,20 +11,19 @@ import { createHttpHandler } from "./transport/http.ts";
 export type Env = {
   TOTAL_RECALL_TOKEN: string;
   LIFE_OS_BASE_URL: string;
-  LIFE_OS_TOKEN: string;
+  LIFE_OS_SERVICE_TOKEN: string;
 };
 
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     const lifeOsClient = createLifeOsHttpClient({
       baseUrl: env.LIFE_OS_BASE_URL,
-      token: env.LIFE_OS_TOKEN,
+      token: env.LIFE_OS_SERVICE_TOKEN,
     });
 
     const dispatch = createToolDispatcher({
       "memory.propose": createMemoryProposeHandler(lifeOsClient),
       "memory.get_proposal": createMemoryGetProposalHandler(lifeOsClient),
-      "memory.decide_proposal": createMemoryDecideProposalHandler(lifeOsClient),
     });
 
     const messageHandler = (input: unknown) => handleMessage(input, dispatch);

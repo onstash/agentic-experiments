@@ -61,6 +61,10 @@ test("lists registered tools", async () => {
   assert.ok(response.result);
   assert.ok("tools" in response.result);
   assert.equal(response.result.tools[0].name, "memory.propose");
+  assert.equal(
+    response.result.tools.some((tool) => tool.name === "memory.decide_proposal"),
+    false,
+  );
 });
 
 test("routes tools/call to the dispatcher", async () => {

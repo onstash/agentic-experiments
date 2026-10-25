@@ -29,30 +29,6 @@ export function createLifeOsHttpClient({
   fetch: fetchImplementation = fetch,
 }: LifeOsHttpClientOptions): LifeOsClient {
   return {
-    async decideProposal(
-      proposalId: string,
-      decision: "approve" | "reject",
-    ): Promise<LifeOsProposeMemoryResponse> {
-      const response = await fetchImplementation(
-        new URL(`${lifeOsProposalPath(proposalId)}/decision`, baseUrl),
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ decision }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new LifeOsApiError(
-          response.status,
-          `Life OS proposal decision failed with status ${response.status}`,
-        );
-      }
-
-      // SAFETY: successful responses follow the documented Life OS contract.
-      return (await response.json()) as LifeOsProposeMemoryResponse;
-    },
-
     async getProposal(proposalId: string): Promise<LifeOsProposeMemoryResponse> {
       const response = await fetchImplementation(new URL(lifeOsProposalPath(proposalId), baseUrl), {
         headers: { Authorization: `Bearer ${token}` },

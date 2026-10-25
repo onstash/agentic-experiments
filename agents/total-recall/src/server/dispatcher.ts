@@ -2,7 +2,6 @@
 /* oxlint-disable anti-slop/no-unsafe-dictionary-type, anti-slop/no-known-value-widening, anti-slop/no-unknown-parameters */
 
 import type { CallToolRequest, CallToolResult } from "../protocol/tools.ts";
-import { validateMemoryDecision } from "../validation/memory-decide-proposal.ts";
 import { validateMemoryGetProposal, type JsonValue } from "../validation/memory-get-proposal.ts";
 import {
   validateMemoryProposal,
@@ -15,7 +14,6 @@ export type ToolDispatcher = (request: CallToolRequest) => Promise<CallToolResul
 const validators: Record<string, (input: JsonValue) => MemoryValidationResult> = {
   "memory.propose": validateMemoryProposal,
   "memory.get_proposal": validateMemoryGetProposal,
-  "memory.decide_proposal": validateMemoryDecision,
 };
 
 const defaultHandlers: Record<string, ToolHandler> = {
