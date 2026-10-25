@@ -13,7 +13,7 @@ test("posts proposals to Life OS with private auth and idempotency", async () =>
     proposalId: "proposal-1",
     status: "pending",
     message: "Review this proposal in Life OS.",
-    scheduledArchiveAt: "2026-11-01T00:00:00.000Z",
+    archiveAt: "2026-11-01T00:00:00.000Z",
   };
 
   const client = createLifeOsHttpClient({

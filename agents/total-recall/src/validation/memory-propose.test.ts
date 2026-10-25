@@ -3,13 +3,12 @@ import test from "node:test";
 
 import { validateMemoryProposal } from "./memory-propose.ts";
 
-test("accepts valid semantic memory", () => {
+test("accepts a Life OS-compatible global memory", () => {
   const result = validateMemoryProposal({
     items: [
       {
-        class: "semantic",
-        kind: "fact",
-        content: "The user lives in London.",
+        content: "Prefer concise explanations.",
+        kind: "preference",
         scope: { type: "global" },
       },
     ],
@@ -19,14 +18,13 @@ test("accepts valid semantic memory", () => {
   assert.deepEqual(result, { valid: true });
 });
 
-test("accepts valid procedural project memory", () => {
+test("accepts a project memory with an id", () => {
   const result = validateMemoryProposal({
     items: [
       {
-        class: "procedural",
-        kind: "rule",
         content: "Run tests before committing.",
-        scope: { type: "project", projectId: "life-os" },
+        kind: "rule",
+        scope: { id: "life-os", type: "project" },
       },
     ],
     idempotencyKey: "request-2",
@@ -35,13 +33,13 @@ test("accepts valid procedural project memory", () => {
   assert.deepEqual(result, { valid: true });
 });
 
-test("rejects mismatched class and kind", () => {
+test("rejects the retired class and fact fields", () => {
   const result = validateMemoryProposal({
     items: [
       {
-        class: "procedural",
+        class: "semantic",
+        content: "The user lives in London.",
         kind: "fact",
-        content: "Invalid classification.",
         scope: { type: "global" },
       },
     ],
@@ -51,13 +49,12 @@ test("rejects mismatched class and kind", () => {
   assert.equal(result.valid, false);
 });
 
-test("rejects a project scope without projectId", () => {
+test("rejects a project scope without an id", () => {
   const result = validateMemoryProposal({
     items: [
       {
-        class: "semantic",
-        kind: "project_context",
         content: "Invalid scope.",
+        kind: "project_context",
         scope: { type: "project" },
       },
     ],

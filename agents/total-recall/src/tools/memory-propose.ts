@@ -11,53 +11,25 @@ const memoryScopeSchema = {
     {
       type: "object",
       additionalProperties: false,
-      required: ["type", "projectId"],
+      required: ["type", "id"],
       properties: {
         type: { const: "project" },
-        projectId: { type: "string", minLength: 1 },
+        id: { type: "string", minLength: 1 },
       },
     },
   ],
 };
 
-const commonMemoryProperties = {
-  content: {
-    type: "string",
-    minLength: 1,
-    maxLength: 1000,
-  },
-  scope: memoryScopeSchema,
-  sourceRef: {
-    type: "string",
-    maxLength: 500,
-  },
-  sourceExcerpt: {
-    type: "string",
-    maxLength: 500,
-  },
-};
-
-const semanticMemoryItemSchema = {
+const memoryItemSchema = {
   type: "object",
   additionalProperties: false,
-  required: ["class", "kind", "content", "scope"],
+  required: ["kind", "content", "scope"],
   properties: {
-    ...commonMemoryProperties,
-    class: { const: "semantic" },
-    kind: {
-      enum: ["fact", "preference", "project_context"],
-    },
-  },
-};
-
-const proceduralMemoryItemSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["class", "kind", "content", "scope"],
-  properties: {
-    ...commonMemoryProperties,
-    class: { const: "procedural" },
-    kind: { const: "rule" },
+    content: { type: "string", minLength: 1, maxLength: 4000 },
+    kind: { enum: ["preference", "project_context", "rule"] },
+    scope: memoryScopeSchema,
+    sourceRef: { type: "string", maxLength: 500 },
+    sourceExcerpt: { type: "string", maxLength: 1000 },
   },
 };
 
@@ -72,15 +44,10 @@ export const memoryProposeTool: Tool = {
       items: {
         type: "array",
         minItems: 1,
-        maxItems: 20,
-        items: {
-          oneOf: [semanticMemoryItemSchema, proceduralMemoryItemSchema],
-        },
+        maxItems: 50,
+        items: memoryItemSchema,
       },
-      idempotencyKey: {
-        type: "string",
-        minLength: 1,
-      },
+      idempotencyKey: { type: "string", minLength: 1, maxLength: 200 },
     },
   },
 };

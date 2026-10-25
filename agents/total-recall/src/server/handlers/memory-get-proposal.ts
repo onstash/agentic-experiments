@@ -27,7 +27,7 @@ export const handleMemoryGetProposal = createMemoryGetProposalHandler({
       proposalId,
       status: "pending",
       message: "Review this proposal in Life OS.",
-      scheduledArchiveAt: new Date().toISOString(),
+      archiveAt: new Date().toISOString(),
     };
   },
 });

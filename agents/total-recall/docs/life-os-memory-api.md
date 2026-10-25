@@ -16,7 +16,6 @@ The JSON body is a `MemoryProposalInput`:
 {
   "items": [
     {
-      "class": "semantic",
       "kind": "preference",
       "content": "Prefer concise explanations.",
       "scope": { "type": "global" }
@@ -37,7 +36,7 @@ Return a `MemoryProposalResult` directly:
   "proposalId": "proposal-123",
   "status": "pending",
   "message": "Review this proposal in Life OS.",
-  "scheduledArchiveAt": "2026-11-01T00:00:00.000Z"
+  "archiveAt": "2026-11-01T00:00:00.000Z"
 }
 ```
 

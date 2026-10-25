@@ -32,7 +32,7 @@ const placeholderClient: LifeOsClient = {
       proposalId: crypto.randomUUID(),
       status: "pending",
       message: "Review this proposal in Life OS.",
-      scheduledArchiveAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      archiveAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     };
   },
 };

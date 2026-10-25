@@ -19,7 +19,6 @@ test("rejects invalid memory proposal arguments before handling", async () => {
     arguments: {
       items: [
         {
-          class: "procedural",
           kind: "fact",
           content: "Invalid classification.",
           scope: { type: "global" },
@@ -40,7 +39,6 @@ test("dispatches valid memory proposals to the handler", async () => {
     arguments: {
       items: [
         {
-          class: "semantic",
           kind: "preference",
           content: "Prefer concise explanations.",
           scope: { type: "global" },

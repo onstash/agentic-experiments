@@ -1,21 +1,10 @@
-export type SemanticMemoryKind = "fact" | "preference" | "project_context";
+export type MemoryKind = "preference" | "project_context" | "rule";
 
-export type ProceduralMemoryKind = "rule";
+export type MemoryScope = { type: "global" } | { id: string; type: "project" };
 
-export type MemoryClassification =
-  | {
-      class: "semantic";
-      kind: SemanticMemoryKind;
-    }
-  | {
-      class: "procedural";
-      kind: ProceduralMemoryKind;
-    };
-
-export type MemoryScope = { type: "global" } | { type: "project"; projectId: string };
-
-export type MemoryProposalItem = MemoryClassification & {
+export type MemoryProposalItem = {
   content: string;
+  kind: MemoryKind;
   scope: MemoryScope;
   sourceRef?: string;
   sourceExcerpt?: string;
@@ -26,18 +15,16 @@ export type MemoryProposalInput = {
   idempotencyKey: string;
 };
 
-export type ProposalStatus = "pending" | "approved" | "rejected" | "archived";
+export type ProposalStatus =
+  | "approved"
+  | "archived"
+  | "partially_approved"
+  | "pending"
+  | "rejected";
 
-export type MemoryProposalResult =
-  | {
-      proposalId: string;
-      status: Exclude<ProposalStatus, "archived">;
-      message: string;
-      scheduledArchiveAt: string;
-    }
-  | {
-      proposalId: string;
-      status: "archived";
-      message: string;
-      archivedAt: string;
-    };
+export type MemoryProposalResult = {
+  archiveAt: string;
+  message: string;
+  proposalId: string;
+  status: ProposalStatus;
+};

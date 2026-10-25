@@ -77,8 +77,7 @@ test("routes tools/call to the dispatcher", async () => {
       arguments: {
         items: [
           {
-            class: "semantic",
-            kind: "fact",
+            kind: "preference",
             content: "The user lives in London.",
             scope: { type: "global" },
           },
