@@ -3,4 +3,7 @@
   "name": "total-recall",
   "main": "src/worker.ts",
   "compatibility_date": "2026-07-28",
+  "vars": {
+    "LIFE_OS_BASE_URL": "https://life-os-web.hastons.workers.dev"
+  }
 }
