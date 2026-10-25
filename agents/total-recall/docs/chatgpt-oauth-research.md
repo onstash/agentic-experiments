@@ -51,18 +51,43 @@ boundary.
 - Keep the Cloudflare `LIFE_OS` service binding and restricted service token for
   Total Recall → Life OS calls.
 
-## Architecture decision still required
+## Better Auth compatibility result
 
-Choose the authorization server before implementation:
+Better Auth's MCP plugin is a strong fit for this architecture. It is explicitly
+an OAuth authorization server and protected-resource implementation for MCP
+clients. It provides OAuth discovery, RFC 9728 protected-resource metadata,
+PKCE, CIMD, token refresh/rotation, JWKS, DPoP, scope enforcement, and standard
+MCP authentication challenges.
 
-1. **Managed authorization server** — fastest path if it supports OAuth 2.1,
-   PKCE, CIMD or DCR, JWT/JWKS or introspection, and Google sign-in.
-2. **Life OS authorization server** — keeps identity in the product, but must
-   prove it can publish standards-compliant OAuth metadata, issue/revoke tokens,
-   rotate refresh tokens, and register ChatGPT clients safely.
+Life OS currently runs `better-auth@1.7.5`; the MCP plugin is published in
+`@better-auth/mcp@1.7.13`, so the Life OS Better Auth dependency must be
+upgraded before implementation. The MCP plugin also requires the Better Auth
+JWT plugin and database tables for OAuth clients, access tokens, refresh tokens,
+consent, and client assertions.
 
-Do not build a custom OAuth server from scratch unless neither option satisfies
-ChatGPT's client-registration requirements.
+Cloudflare Workers require a secure CIMD fetch transport that resolves and pins
+approved addresses, rejects special-use networks, and refuses redirects. This
+is a required implementation detail, not an optional hardening step.
+
+## Recommended architecture
+
+Use Better Auth in Life OS as the authorization server. Do not add Clerk or
+build a custom OAuth server.
+
+```text
+ChatGPT → Total Recall protected resource
+         → Better Auth OAuth endpoints in Life OS
+         → existing Google sign-in and Life OS owner identity
+```
+
+The Better Auth MCP plugin should issue tokens for the Total Recall resource.
+Total Recall must publish its own protected-resource metadata that points to
+Life OS as the authorization server, validate Life OS-issued tokens through
+JWKS, and use the official MCP SDK v2 Streamable HTTP transport. The current
+custom Total Recall transport must be replaced or made fully conformant.
+
+`LIFE_OS_SERVICE_TOKEN` remains separate and is used only for Total Recall →
+Life OS proposal calls.
 
 ## Verification plan
 
@@ -81,7 +106,10 @@ ChatGPT adds custom MCP server
 
 - OpenAI, [Building MCP servers for plugins and API integrations](https://developers.openai.com/api/docs/mcp)
   — authentication and ChatGPT plugin connection guidance, accessed 2026-10-25.
-- Model Context Protocol, [Authorization specification (2025-11-25)](https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization)
+- Better Auth, [MCP plugin](https://better-auth.com/docs/plugins/mcp) — MCP OAuth
+  provider, CIMD, JWT/JWKS, scope enforcement, Worker transport constraints,
+  and required OAuth schema, accessed 2026-10-25.
+- Model Context Protocol, [Authorization specification (2026-07-28)](https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization)
   — protected resource metadata, OAuth discovery, CIMD/DCR, PKCE, and token validation.
-- Model Context Protocol, [Transports specification (2025-11-25)](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)
+- Model Context Protocol, [Transports specification (2026-07-28)](https://modelcontextprotocol.io/specification/2026-07-28/basic/transports)
   — Streamable HTTP session and notification behavior.
