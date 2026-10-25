@@ -8,8 +8,13 @@ import { createToolDispatcher } from "./server/dispatcher.ts";
 import { handleMessage } from "./server/mcp-server.ts";
 import { createHttpHandler } from "./transport/http.ts";
 
+type LifeOsServiceBinding = {
+  fetch: typeof fetch;
+};
+
 export type Env = {
   TOTAL_RECALL_TOKEN: string;
+  LIFE_OS?: LifeOsServiceBinding;
   LIFE_OS_BASE_URL: string;
   LIFE_OS_SERVICE_TOKEN: string;
 };
@@ -18,6 +23,7 @@ export default {
   fetch(request: Request, env: Env): Promise<Response> {
     const lifeOsClient = createLifeOsHttpClient({
       baseUrl: env.LIFE_OS_BASE_URL,
+      fetch: env.LIFE_OS?.fetch.bind(env.LIFE_OS),
       token: env.LIFE_OS_SERVICE_TOKEN,
     });
 
