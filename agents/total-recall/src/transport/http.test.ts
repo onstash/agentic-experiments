@@ -72,6 +72,22 @@ test("returns parse errors for invalid JSON", async () => {
   });
 });
 
+test("accepts MCP notifications without a JSON-RPC response", async () => {
+  const response = await handleHttpRequest(
+    new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 202);
+  assert.equal(await response.text(), "");
+});
+
 test("routes valid MCP messages", async () => {
   const response = await handleHttpRequest(
     new Request("http://localhost/mcp", {

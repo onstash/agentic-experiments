@@ -2,6 +2,7 @@
 /* oxlint-disable anti-slop/no-unknown-parameters */
 
 import type { JsonRpcResponse } from "../protocol/json-rpc.ts";
+import { isJsonRpcNotification } from "../protocol/parse.ts";
 import { handleMessage } from "../server/mcp-server.ts";
 
 export type Authenticate = (token: string) => Promise<boolean>;
@@ -43,6 +44,10 @@ export function createHttpHandler({
         id: null,
         error: { code: -32700, message: "Parse error" },
       });
+    }
+
+    if (isJsonRpcNotification(input)) {
+      return new Response(null, { status: 202 });
     }
 
     return jsonResponse(await messageHandler(input));
