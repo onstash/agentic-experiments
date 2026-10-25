@@ -14,12 +14,16 @@ export type LifeOsHttpClientOptions = {
 };
 
 export class LifeOsApiError extends Error {
+  readonly responseBody: string;
   readonly status: number;
+  readonly url: string;
 
-  constructor(status: number, message: string) {
-    super(message);
+  constructor(status: number, message: string, url: string, responseBody: string) {
+    super(`${message} at ${url}: ${responseBody}`);
     this.name = "LifeOsApiError";
+    this.responseBody = responseBody;
     this.status = status;
+    this.url = url;
   }
 }
 
@@ -30,7 +34,9 @@ export function createLifeOsHttpClient({
 }: LifeOsHttpClientOptions): LifeOsClient {
   return {
     async getProposal(proposalId: string): Promise<LifeOsProposeMemoryResponse> {
-      const response = await fetchImplementation(new URL(lifeOsProposalPath(proposalId), baseUrl), {
+      const url = new URL(lifeOsProposalPath(proposalId), baseUrl);
+
+      const response = await fetchImplementation(url, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -38,6 +44,8 @@ export function createLifeOsHttpClient({
         throw new LifeOsApiError(
           response.status,
           `Life OS proposal lookup failed with status ${response.status}`,
+          url.toString(),
+          await response.text(),
         );
       }
 
@@ -46,7 +54,9 @@ export function createLifeOsHttpClient({
     },
 
     async proposeMemory(input: LifeOsProposeMemoryRequest): Promise<LifeOsProposeMemoryResponse> {
-      const response = await fetchImplementation(new URL(LIFE_OS_PROPOSE_MEMORY_PATH, baseUrl), {
+      const url = new URL(LIFE_OS_PROPOSE_MEMORY_PATH, baseUrl);
+
+      const response = await fetchImplementation(url, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -60,6 +70,8 @@ export function createLifeOsHttpClient({
         throw new LifeOsApiError(
           response.status,
           `Life OS memory proposal failed with status ${response.status}`,
+          url.toString(),
+          await response.text(),
         );
       }
 
