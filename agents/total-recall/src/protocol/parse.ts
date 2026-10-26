@@ -17,6 +17,16 @@ function isRequestId(value: unknown): value is string | number {
   );
 }
 
+export function isJsonRpcNotification(input: unknown): boolean {
+  return (
+    isRecord(input) &&
+    input.jsonrpc === "2.0" &&
+    typeof input.method === "string" &&
+    input.method.length > 0 &&
+    !("id" in input)
+  );
+}
+
 export function parseJsonRpcRequest(input: unknown): ParsedJsonRpcRequest {
   if (!isRecord(input)) return invalidRequest("Request must be an object");
   if (input.jsonrpc !== "2.0") {

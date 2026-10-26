@@ -22,7 +22,7 @@ test("returns the MCP initialize handshake", async () => {
     id: 0,
     method: "initialize",
     params: {
-      protocolVersion: "2026-07-28",
+      protocolVersion: "2025-06-18",
       capabilities: {},
       clientInfo: { name: "test-client", version: "0.1.0" },
     },
@@ -31,7 +31,7 @@ test("returns the MCP initialize handshake", async () => {
   assert.ok("result" in response);
   assert.ok(response.result);
   assert.ok("protocolVersion" in response.result);
-  assert.equal(response.result.protocolVersion, "2026-07-28");
+  assert.equal(response.result.protocolVersion, "2025-06-18");
   assert.equal(response.result.serverInfo.name, "total-recall");
   assert.ok("tools" in response.result.capabilities);
 });

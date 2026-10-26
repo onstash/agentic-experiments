@@ -1,3 +1,5 @@
+/* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion, anti-slop/require-readable-spacing */
+
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -9,7 +11,7 @@ const jsonHeaders = {
 };
 
 const handleHttpRequest = createHttpHandler({
-  authenticate: async (token) => token === "test-token",
+  authenticate: async (token) => (token === "test-token" ? new Set() : null),
 });
 
 test("rejects non-POST requests", async () => {
@@ -72,6 +74,46 @@ test("returns parse errors for invalid JSON", async () => {
   });
 });
 
+test("accepts MCP notifications without a JSON-RPC response", async () => {
+  const response = await handleHttpRequest(
+    new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/initialized",
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 202);
+  assert.equal(await response.text(), "");
+});
+
+test("rejects tool calls without their required scope", async () => {
+  const handler = createHttpHandler({
+    authenticate: async () => new Set(["total-recall.memory.propose"]),
+    requiredScopes: (input) =>
+      isMemoryGetProposalCall(input) ? ["total-recall.memory.get_proposal"] : [],
+    resourceMetadataUrl: "https://total-recall.test/.well-known/oauth-protected-resource/mcp",
+  });
+  const response = await handler(
+    new Request("http://localhost/mcp", {
+      method: "POST",
+      headers: jsonHeaders,
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "tools/call",
+        params: { name: "memory.get_proposal" },
+      }),
+    }),
+  );
+
+  assert.equal(response.status, 403);
+  assert.match(response.headers.get("WWW-Authenticate") ?? "", /insufficient_scope/);
+});
+
 test("routes valid MCP messages", async () => {
   const response = await handleHttpRequest(
     new Request("http://localhost/mcp", {
@@ -93,3 +135,10 @@ test("routes valid MCP messages", async () => {
   assert.equal(body.result.tools[0].name, "memory.propose");
   assert.equal(response.headers.get("Content-Type"), "application/json");
 });
+
+function isMemoryGetProposalCall(input: unknown): boolean {
+  if (typeof input !== "object" || input === null) return false;
+
+  const message = input as { method?: unknown; params?: { name?: unknown } };
+  return message.method === "tools/call" && message.params?.name === "memory.get_proposal";
+}
