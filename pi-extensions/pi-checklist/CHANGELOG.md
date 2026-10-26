@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/onstash/agentic-experiments/compare/pi-checklist-v0.3.0...pi-checklist-v0.4.0) (2026-10-25)
+
+
+### Features
+
+* **checklist:** enforce verified task completion ([#5](https://github.com/onstash/agentic-experiments/issues/5)) ([226f5d4](https://github.com/onstash/agentic-experiments/commit/226f5d40353223649551e0d60c3af1ff81929c7b))
+
 ## [0.3.0](https://github.com/onstash/agentic-experiments/compare/pi-checklist-v0.2.0...pi-checklist-v0.3.0) (2026-10-07)
 
 
