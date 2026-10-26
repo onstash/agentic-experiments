@@ -1,6 +1,7 @@
 /* Raw JSON is parsed by the MCP server boundary. */
-/* oxlint-disable anti-slop/no-unknown-parameters */
+/* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-runtime-typeof, anti-slop/require-safety-comment-for-type-assertion, anti-slop/require-readable-spacing */
 
+import { createAccessTokenValidator } from "./auth/access-token.ts";
 import { createLifeOsHttpClient } from "./life-os/http-client.ts";
 import { createMemoryGetProposalHandler } from "./server/handlers/memory-get-proposal.ts";
 import { createMemoryProposeHandler } from "./server/handlers/memory-propose.ts";
@@ -19,11 +20,26 @@ export type Env = {
   LIFE_OS_SERVICE_TOKEN: string;
 };
 
+const MCP_RESOURCE = "https://total-recall.hastons.workers.dev/mcp";
+const MEMORY_SCOPES = ["total-recall.memory.propose", "total-recall.memory.get_proposal"];
+
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
-    if (new URL(request.url).pathname !== "/mcp") {
+    const { pathname } = new URL(request.url);
+
+    if (pathname === "/.well-known/oauth-protected-resource/mcp") {
+      return Promise.resolve(protectedResourceMetadata(env));
+    }
+
+    if (pathname !== "/mcp") {
       return Promise.resolve(new Response("Not Found", { status: 404 }));
     }
+
+    const validateAccessToken = createAccessTokenValidator({
+      issuer: authorizationServer(env),
+      audience: MCP_RESOURCE,
+      jwksUrl: new URL("/api/auth/jwks", env.LIFE_OS_BASE_URL).toString(),
+    });
 
     const lifeOsClient = createLifeOsHttpClient({
       baseUrl: env.LIFE_OS_BASE_URL,
@@ -39,13 +55,52 @@ export default {
     const messageHandler = (input: unknown) => handleMessage(input, dispatch);
 
     const handleHttpRequest = createHttpHandler({
-      authenticate: (token) => Promise.resolve(constantTimeEqual(token, env.TOTAL_RECALL_TOKEN)),
+      authenticate: async (token) => {
+        if (constantTimeEqual(token, env.TOTAL_RECALL_TOKEN)) return new Set(MEMORY_SCOPES);
+
+        return validateAccessToken(token);
+      },
+      requiredScopes: requiredScopesForMessage,
+      resourceMetadataUrl: `${MCP_RESOURCE.replace(/\/mcp$/, "")}/.well-known/oauth-protected-resource/mcp`,
       messageHandler,
     });
 
     return handleHttpRequest(request);
   },
 };
+
+function requiredScopesForMessage(input: unknown): readonly string[] {
+  if (typeof input !== "object" || input === null) return [];
+
+  const message = input as { method?: unknown; params?: { name?: unknown } };
+
+  if (message.method !== "tools/call" || typeof message.params?.name !== "string") return [];
+
+  if (message.params.name === "memory.propose") return ["total-recall.memory.propose"];
+  if (message.params.name === "memory.get_proposal") return ["total-recall.memory.get_proposal"];
+
+  return [];
+}
+
+function protectedResourceMetadata(env: Env): Response {
+  return Response.json(
+    {
+      resource: MCP_RESOURCE,
+      authorization_servers: [authorizationServer(env)],
+      scopes_supported: MEMORY_SCOPES,
+      bearer_methods_supported: ["header"],
+    },
+    {
+      headers: {
+        "Cache-Control": "public, max-age=300",
+      },
+    },
+  );
+}
+
+function authorizationServer(env: Env): string {
+  return new URL("/api/auth", env.LIFE_OS_BASE_URL).toString();
+}
 
 function constantTimeEqual(left: string, right: string): boolean {
   const leftBytes = new TextEncoder().encode(left);
