@@ -56,7 +56,7 @@ export async function handleRequest(
 ): Promise<JsonRpcResponse<InitializeResult | ListToolsResult | ToolsCallResult>> {
   if (request.method === "initialize") {
     return success(request.id, {
-      protocolVersion: "2026-07-28",
+      protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
       serverInfo: { name: "total-recall", version: "0.1.0" },
     });

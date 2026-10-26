@@ -13,7 +13,7 @@ export type InitializeRequest = {
 };
 
 export type InitializeResult = {
-  protocolVersion: "2026-07-28";
+  protocolVersion: "2025-06-18";
   capabilities: {
     tools: Record<string, never>;
   };
