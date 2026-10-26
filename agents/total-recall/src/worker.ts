@@ -38,6 +38,7 @@ export default {
       issuer: authorizationServer(env),
       audience: MCP_RESOURCE,
       jwksUrl: new URL("/api/auth/jwks", env.LIFE_OS_BASE_URL).toString(),
+      fetcher: env.LIFE_OS?.fetch.bind(env.LIFE_OS),
     });
 
     const lifeOsClient = createLifeOsHttpClient({

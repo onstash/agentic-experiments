@@ -9,16 +9,18 @@ export function createAccessTokenValidator({
   issuer,
   audience,
   jwksUrl,
+  fetcher,
 }: {
   issuer: string;
   audience: string;
   jwksUrl: string;
+  fetcher?: typeof fetch;
 }): AccessTokenValidator {
   const jwksEndpoint = new URL(jwksUrl);
 
   return async (token) => {
     try {
-      const response = await fetch(jwksEndpoint);
+      const response = await (fetcher ?? fetch)(jwksEndpoint);
       console.warn("JWKS fetch", {
         status: response.status,
         contentType: response.headers.get("content-type"),
