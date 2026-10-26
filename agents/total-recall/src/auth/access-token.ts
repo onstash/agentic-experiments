@@ -1,7 +1,7 @@
 /* OAuth token claims enter from an external authorization server. */
 /* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/require-readable-spacing */
 
-import { createRemoteJWKSet, decodeJwt, jwtVerify } from "jose";
+import { createLocalJWKSet, decodeJwt, jwtVerify } from "jose";
 
 export type AccessTokenValidator = (token: string) => Promise<ReadonlySet<string> | null>;
 
@@ -14,10 +14,18 @@ export function createAccessTokenValidator({
   audience: string;
   jwksUrl: string;
 }): AccessTokenValidator {
-  const jwks = createRemoteJWKSet(new URL(jwksUrl));
+  const jwksEndpoint = new URL(jwksUrl);
 
   return async (token) => {
     try {
+      const response = await fetch(jwksEndpoint);
+      console.warn("JWKS fetch", {
+        status: response.status,
+        contentType: response.headers.get("content-type"),
+      });
+      if (!response.ok) return null;
+      // SAFETY: Better Auth's JWKS response is validated by jose when selecting a matching key.
+      const jwks = createLocalJWKSet((await response.json()) as { keys: never[] });
       const { payload } = await jwtVerify(token, jwks, { issuer, audience });
       return parseScopes(payload.scope);
     } catch (error) {
