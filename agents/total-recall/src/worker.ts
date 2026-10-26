@@ -6,8 +6,7 @@ import { createLifeOsHttpClient } from "./life-os/http-client.ts";
 import { createMemoryGetProposalHandler } from "./server/handlers/memory-get-proposal.ts";
 import { createMemoryProposeHandler } from "./server/handlers/memory-propose.ts";
 import { createToolDispatcher } from "./server/dispatcher.ts";
-import { handleMessage } from "./server/mcp-server.ts";
-import { createHttpHandler } from "./transport/http.ts";
+import { handleSdkRequest } from "./transport/sdk.ts";
 
 type LifeOsServiceBinding = {
   fetch: typeof fetch;
@@ -24,7 +23,7 @@ const MCP_RESOURCE = "https://total-recall.hastons.workers.dev/mcp";
 const MEMORY_SCOPES = ["total-recall.memory.propose", "total-recall.memory.get_proposal"];
 
 export default {
-  fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
 
     if (pathname === "/.well-known/oauth-protected-resource/mcp") {
@@ -52,22 +51,55 @@ export default {
       "memory.get_proposal": createMemoryGetProposalHandler(lifeOsClient),
     });
 
-    const messageHandler = (input: unknown) => handleMessage(input, dispatch);
+    const authenticate = async (token: string) => {
+      if (constantTimeEqual(token, env.TOTAL_RECALL_TOKEN)) return new Set(MEMORY_SCOPES);
 
-    const handleHttpRequest = createHttpHandler({
-      authenticate: async (token) => {
-        if (constantTimeEqual(token, env.TOTAL_RECALL_TOKEN)) return new Set(MEMORY_SCOPES);
+      return validateAccessToken(token);
+    };
 
-        return validateAccessToken(token);
-      },
-      requiredScopes: requiredScopesForMessage,
-      resourceMetadataUrl: `${MCP_RESOURCE.replace(/\/mcp$/, "")}/.well-known/oauth-protected-resource/mcp`,
-      messageHandler,
-    });
+    const scopes = await authenticateToken(request, authenticate);
+    if (!scopes) return unauthorizedResponse();
 
-    return handleHttpRequest(request);
+    if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
+
+    const body = await request
+      .clone()
+      .json()
+      .catch(() => null);
+    const missingScopes = requiredScopesForMessage(body).filter((scope) => !scopes.has(scope));
+    if (missingScopes.length > 0) return insufficientScopeResponse(missingScopes);
+
+    return handleSdkRequest(request, dispatch);
   },
 };
+
+async function authenticateToken(
+  request: Request,
+  authenticate: (token: string) => Promise<ReadonlySet<string> | null>,
+): Promise<ReadonlySet<string> | null> {
+  const header = request.headers.get("authorization");
+  if (!header?.startsWith("Bearer ")) return null;
+
+  return authenticate(header.slice("Bearer ".length));
+}
+
+function unauthorizedResponse(): Response {
+  return new Response("Unauthorized", {
+    status: 401,
+    headers: {
+      "WWW-Authenticate": `Bearer resource_metadata="${MCP_RESOURCE.replace(/\/mcp$/, "")}/.well-known/oauth-protected-resource/mcp"`,
+    },
+  });
+}
+
+function insufficientScopeResponse(scopes: readonly string[]): Response {
+  return new Response("Forbidden", {
+    status: 403,
+    headers: {
+      "WWW-Authenticate": `Bearer error="insufficient_scope", scope="${scopes.join(" ")}"`,
+    },
+  });
+}
 
 function requiredScopesForMessage(input: unknown): readonly string[] {
   if (typeof input !== "object" || input === null) return [];
