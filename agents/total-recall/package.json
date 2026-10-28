@@ -8,7 +8,8 @@
     "lint": "oxlint --deny-warnings .",
     "test": "node --test 'src/**/*.test.ts' 'tests/**/*.test.mjs'",
     "typecheck": "tsc --noEmit",
-    "check:agent-contract": "node scripts/check-agent-contract.mjs"
+    "check:agent-contract": "node scripts/check-agent-contract.mjs",
+    "check:mcp-contract": "node scripts/check-mcp-contract.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",

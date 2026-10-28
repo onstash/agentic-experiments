@@ -1,5 +1,5 @@
 import type { MemoryProposalInput, MemoryProposalResult } from "../domain/memory.ts";
-import type { JsonObject } from "../protocol/tools.ts";
+import type { JsonObject, JsonSchema } from "../protocol/tools.ts";
 
 export const LIFE_OS_PROPOSE_MEMORY_PATH = "/api/private/memory/proposals";
 
@@ -15,6 +15,7 @@ export type LifeOsCapability = {
   description: string;
   policy: string;
   resultLimit: number;
+  inputSchema: JsonSchema;
 };
 
 export type LifeOsClient = {
@@ -23,7 +24,7 @@ export type LifeOsClient = {
     limit?: number;
   }): Promise<{ capabilities: LifeOsCapability[] }>;
   execute(input: {
-    operations: Array<{ id: string; input?: JsonObject }>;
+    operations: Array<{ id: string; input: JsonObject }>;
     mode: "preview" | "commit";
     idempotencyKey: string;
     conversationId?: string;
