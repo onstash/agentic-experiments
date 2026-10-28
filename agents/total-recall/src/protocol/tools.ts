@@ -1,7 +1,14 @@
-/* JSON Schema and MCP arguments are intentionally open JSON dictionaries. */
-/* oxlint-disable anti-slop/no-unsafe-dictionary-type */
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue };
 
-export type JsonSchema = Record<string, unknown>;
+export type JsonObject = { [key: string]: JsonValue };
+
+export type JsonSchema = JsonObject;
 
 export type Tool = {
   name: string;
@@ -12,7 +19,7 @@ export type Tool = {
 
 export type CallToolRequest = {
   name: string;
-  arguments?: Record<string, unknown>;
+  arguments?: { [key: string]: JsonValue };
 };
 
 export type TextContent = {
@@ -22,6 +29,6 @@ export type TextContent = {
 
 export type CallToolResult = {
   content: TextContent[];
-  structuredContent?: Record<string, unknown>;
+  structuredContent?: JsonObject;
   isError?: boolean;
 };

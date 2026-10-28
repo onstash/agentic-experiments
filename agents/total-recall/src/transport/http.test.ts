@@ -1,8 +1,8 @@
-/* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/require-safety-comment-for-type-assertion, anti-slop/require-readable-spacing */
-
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { parseJsonRpcRequest, parseToolsCallRequest } from "../protocol/parse.ts";
+import type { JsonValue } from "../protocol/tools.ts";
 import { createHttpHandler } from "./http.ts";
 
 const jsonHeaders = {
@@ -97,6 +97,7 @@ test("rejects tool calls without their required scope", async () => {
       isMemoryGetProposalCall(input) ? ["total-recall.memory.get_proposal"] : [],
     resourceMetadataUrl: "https://total-recall.test/.well-known/oauth-protected-resource/mcp",
   });
+
   const response = await handler(
     new Request("http://localhost/mcp", {
       method: "POST",
@@ -132,13 +133,14 @@ test("routes valid MCP messages", async () => {
 
   assert.equal(body.jsonrpc, "2.0");
   assert.equal(body.id, 1);
-  assert.equal(body.result.tools[0].name, "memory.propose");
+  assert.equal(body.result.tools[0].name, "search");
   assert.equal(response.headers.get("Content-Type"), "application/json");
 });
 
-function isMemoryGetProposalCall(input: unknown): boolean {
-  if (typeof input !== "object" || input === null) return false;
+function isMemoryGetProposalCall(input: JsonValue): boolean {
+  const parsed = parseJsonRpcRequest(input);
 
-  const message = input as { method?: unknown; params?: { name?: unknown } };
-  return message.method === "tools/call" && message.params?.name === "memory.get_proposal";
+  if (!parsed.ok || parsed.request.method !== "tools/call") return false;
+
+  return parseToolsCallRequest(parsed.request.params)?.name === "memory.get_proposal";
 }

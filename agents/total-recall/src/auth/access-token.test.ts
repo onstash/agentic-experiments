@@ -1,7 +1,6 @@
-/* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/require-readable-spacing */
-
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
+import type { AddressInfo } from "node:net";
 import test from "node:test";
 
 import { exportJWK, generateKeyPair, SignJWT } from "jose";
@@ -9,6 +8,7 @@ import { exportJWK, generateKeyPair, SignJWT } from "jose";
 import { createAccessTokenValidator } from "./access-token.ts";
 
 const issuer = "https://life-os.example/api/auth";
+
 const audience = "https://total-recall.example/mcp";
 
 test("accepts a Life OS token with the expected issuer and resource audience", async () => {
@@ -22,9 +22,13 @@ test("accepts a Life OS token with the expected issuer and resource audience", a
     response.setHeader("Content-Type", "application/json");
     response.end(JSON.stringify({ keys: [jwk] }));
   });
+
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   const address = server.address();
-  assert.ok(address && typeof address !== "string");
+  assert.ok(address);
+
+  // SAFETY: listening on a TCP address returns Node's AddressInfo shape.
+  const port = (address as AddressInfo).port;
 
   try {
     const token = await new SignJWT({ scope: "total-recall.memory.propose" })
@@ -34,10 +38,11 @@ test("accepts a Life OS token with the expected issuer and resource audience", a
       .setIssuedAt()
       .setExpirationTime("5m")
       .sign(privateKey);
+
     const validate = createAccessTokenValidator({
       issuer,
       audience,
-      jwksUrl: `http://127.0.0.1:${address.port}/jwks`,
+      jwksUrl: `http://127.0.0.1:${port}/jwks`,
     });
 
     const scopes = await validate(token);

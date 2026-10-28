@@ -1,11 +1,8 @@
-import type { CallToolRequest, CallToolResult, Tool } from "./tools.js";
-
-/* Client capabilities are an extensible protocol dictionary. */
-/* oxlint-disable anti-slop/no-unsafe-dictionary-type */
+import type { CallToolRequest, CallToolResult, JsonObject, Tool } from "./tools.js";
 
 export type InitializeRequest = {
   protocolVersion: string;
-  capabilities?: Record<string, unknown>;
+  capabilities?: JsonObject;
   clientInfo?: {
     name: string;
     version: string;
@@ -15,7 +12,7 @@ export type InitializeRequest = {
 export type InitializeResult = {
   protocolVersion: "2025-06-18";
   capabilities: {
-    tools: Record<string, never>;
+    tools: JsonObject;
   };
   serverInfo: {
     name: "total-recall";

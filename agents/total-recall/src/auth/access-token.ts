@@ -1,7 +1,6 @@
-/* OAuth token claims enter from an external authorization server. */
-/* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters, anti-slop/require-readable-spacing */
+import { createLocalJWKSet, decodeJwt, jwtVerify, type JWTPayload } from "jose";
 
-import { createLocalJWKSet, decodeJwt, jwtVerify } from "jose";
+type ScopeClaims = JWTPayload & { scope?: string };
 
 export type AccessTokenValidator = (token: string) => Promise<ReadonlySet<string> | null>;
 
@@ -25,10 +24,13 @@ export function createAccessTokenValidator({
         status: response.status,
         contentType: response.headers.get("content-type"),
       });
+
       if (!response.ok) return null;
+
       // SAFETY: Better Auth's JWKS response is validated by jose when selecting a matching key.
       const jwks = createLocalJWKSet((await response.json()) as { keys: never[] });
-      const { payload } = await jwtVerify(token, jwks, { issuer, audience });
+      const { payload } = await jwtVerify<ScopeClaims>(token, jwks, { issuer, audience });
+
       return parseScopes(payload.scope);
     } catch (error) {
       const claims = decodeClaims(token);
@@ -40,6 +42,7 @@ export function createAccessTokenValidator({
         audience: claims?.aud,
         scope: claims?.scope,
       });
+
       return null;
     }
   };
@@ -55,8 +58,8 @@ function decodeClaims(
   }
 }
 
-function parseScopes(scope: unknown): ReadonlySet<string> {
-  if (typeof scope !== "string") return new Set();
+function parseScopes(scope: string | undefined): ReadonlySet<string> {
+  if (scope === undefined) return new Set();
 
   return new Set(scope.split(" ").filter((value) => value.length > 0));
 }

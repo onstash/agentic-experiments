@@ -1,11 +1,18 @@
 export type MemoryKind = "preference" | "project_context" | "rule";
 
+export type MemoryProposalConfidence = "low" | "medium" | "high";
+
+export type MemoryProposalRisk = "low" | "medium" | "high";
+
 export type MemoryScope = { type: "global" } | { id: string; type: "project" };
 
 export type MemoryProposalItem = {
   content: string;
   kind: MemoryKind;
   scope: MemoryScope;
+  confidence?: MemoryProposalConfidence;
+  classificationReason?: string;
+  risk?: MemoryProposalRisk;
   sourceRef?: string;
   sourceExcerpt?: string;
 };

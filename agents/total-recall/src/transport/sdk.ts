@@ -15,7 +15,10 @@ export async function handleSdkRequest(
   );
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: listTools() }));
-  server.setRequestHandler(CallToolRequestSchema, async (input) => dispatch(input.params));
+  server.setRequestHandler(CallToolRequestSchema, async (input) => {
+    // SAFETY: the MCP SDK has validated the request as a JSON object before dispatch.
+    return dispatch(input.params as CallToolRequest);
+  });
 
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
