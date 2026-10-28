@@ -9,6 +9,33 @@ const env: Env = {
   LIFE_OS_SERVICE_TOKEN: "life-os-service-token",
 };
 
+const integratedEnv: Env = {
+  ...env,
+  LIFE_OS: {
+    async fetch(input) {
+      const url = input instanceof Request ? input.url : input.toString();
+
+      if (url.endsWith("/api/private/agent/capabilities")) {
+        return Response.json({
+          capabilities: [
+            {
+              id: "memory.search",
+              description: "Search memory",
+              policy: "read",
+              resultLimit: 20,
+            },
+          ],
+        });
+      }
+
+      return Response.json({
+        mode: "preview",
+        results: [{ id: "memory.propose", result: { proposalId: "proposal-1" } }],
+      });
+    },
+  },
+};
+
 function request(token: string): Request {
   return new Request("https://total-recall.test/mcp", {
     method: "POST",
@@ -47,7 +74,7 @@ test("publishes OAuth protected-resource metadata", async () => {
   assert.deepEqual(await response.json(), {
     resource: "https://total-recall.hastons.workers.dev/mcp",
     authorization_servers: ["https://life-os.example/api/auth"],
-    scopes_supported: ["total-recall.memory.propose", "total-recall.memory.get_proposal"],
+    scopes_supported: ["total-recall.search", "total-recall.execute"],
     bearer_methods_supported: ["header"],
   });
 });
@@ -60,4 +87,57 @@ test("serves MCP only from /mcp", async () => {
   const response = await worker.fetch(rootRequest, env);
 
   assert.equal(response.status, 404);
+});
+
+test("runs search through the Worker and Life OS binding", async () => {
+  const response = await worker.fetch(
+    new Request("https://total-recall.test/mcp", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer test-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: { name: "search", arguments: { query: "memory" } },
+      }),
+    }),
+    integratedEnv,
+  );
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.result.content[0].text.includes("memory.search"), true);
+});
+
+test("runs execute through the Worker and Life OS binding", async () => {
+  const response = await worker.fetch(
+    new Request("https://total-recall.test/mcp", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer test-token",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 3,
+        method: "tools/call",
+        params: {
+          name: "execute",
+          arguments: {
+            operations: [{ id: "memory.propose", input: {} }],
+            mode: "preview",
+            idempotencyKey: "request-1",
+          },
+        },
+      }),
+    }),
+    integratedEnv,
+  );
+
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.result.structuredContent.results[0].id, "memory.propose");
 });

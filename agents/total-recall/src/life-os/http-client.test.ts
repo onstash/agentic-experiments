@@ -55,8 +55,7 @@ test("raises a typed error for Life OS failures", async () => {
 
   await assert.rejects(
     client.proposeMemory({ items: [], idempotencyKey: "request-2" }),
-    // oxlint-disable-next-line anti-slop/no-unknown-parameters
-    (error: unknown) => {
+    (error) => {
       assert.ok(error instanceof LifeOsApiError);
 
       assert.equal(error.status, 401);

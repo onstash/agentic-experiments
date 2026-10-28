@@ -1,3 +1,5 @@
+import type { JsonValue } from "./tools.ts";
+
 export type RequestId = string | number;
 
 export type JsonRpcError = {
@@ -10,7 +12,7 @@ export type JsonRpcRequest = {
   jsonrpc: "2.0";
   id: RequestId;
   method: string;
-  params?: unknown;
+  params?: JsonValue;
 };
 
 export type JsonRpcResponse<TResult> =

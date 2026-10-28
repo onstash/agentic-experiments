@@ -1,15 +1,13 @@
-/* Raw JSON is parsed by the MCP server boundary. */
-/* oxlint-disable anti-slop/no-unknown-parameters */
-
 import type { JsonRpcResponse } from "../protocol/json-rpc.ts";
+import type { JsonValue } from "../protocol/tools.ts";
 import { isJsonRpcNotification } from "../protocol/parse.ts";
 import { handleMessage } from "../server/mcp-server.ts";
 
 export type Authenticate = (token: string) => Promise<ReadonlySet<string> | null>;
 
-export type MessageHandler = (input: unknown) => Promise<JsonRpcResponse<unknown>>;
+export type MessageHandler = (input: JsonValue) => Promise<JsonRpcResponse<unknown>>;
 
-export type RequiredScopes = (input: unknown) => readonly string[];
+export type RequiredScopes = (input: JsonValue) => readonly string[];
 
 export function createHttpHandler({
   authenticate,
@@ -41,7 +39,7 @@ export function createHttpHandler({
       return new Response("Unsupported Media Type", { status: 415 });
     }
 
-    let input: unknown;
+    let input: JsonValue;
 
     try {
       input = await request.json();

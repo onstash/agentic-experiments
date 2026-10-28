@@ -1,14 +1,7 @@
-/* MCP params arrive as untrusted JSON and are narrowed at this boundary. */
-/* oxlint-disable anti-slop/no-runtime-typeof, anti-slop/no-unknown-parameters */
-
-import { parseJsonRpcRequest } from "../protocol/parse.ts";
+import { parseJsonRpcRequest, parseToolsCallRequest } from "../protocol/parse.ts";
 import type { JsonRpcRequest, JsonRpcResponse } from "../protocol/json-rpc.ts";
-import type {
-  InitializeResult,
-  ListToolsResult,
-  ToolsCallRequest,
-  ToolsCallResult,
-} from "../protocol/methods.ts";
+import type { InitializeResult, ListToolsResult, ToolsCallResult } from "../protocol/methods.ts";
+import type { JsonValue } from "../protocol/tools.ts";
 import { callTool, type ToolDispatcher } from "./dispatcher.ts";
 import { listTools } from "./registry.ts";
 
@@ -24,17 +17,8 @@ function failure(
   return { jsonrpc: "2.0", id, error: { code, message } };
 }
 
-function isToolsCallRequest(params: unknown): params is ToolsCallRequest {
-  return (
-    typeof params === "object" &&
-    params !== null &&
-    "name" in params &&
-    typeof params.name === "string"
-  );
-}
-
 export async function handleMessage(
-  input: unknown,
+  input: JsonValue,
   dispatch: ToolDispatcher = callTool,
 ): Promise<JsonRpcResponse<InitializeResult | ListToolsResult | ToolsCallResult>> {
   const parsed = parseJsonRpcRequest(input);
@@ -67,11 +51,13 @@ export async function handleRequest(
   }
 
   if (request.method === "tools/call") {
-    if (!isToolsCallRequest(request.params)) {
+    const toolsCall = parseToolsCallRequest(request.params);
+
+    if (!toolsCall) {
       return failure(request.id, -32602, "Invalid tools/call params");
     }
 
-    return success(request.id, await dispatch(request.params));
+    return success(request.id, await dispatch(toolsCall));
   }
 
   return failure(request.id, -32601, `Method not found: ${request.method}`);

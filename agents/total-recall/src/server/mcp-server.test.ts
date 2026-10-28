@@ -46,7 +46,7 @@ test("routes valid server-boundary messages", async () => {
   assert.ok("result" in response);
   assert.ok(response.result);
   assert.ok("tools" in response.result);
-  assert.equal(response.result.tools[0].name, "memory.propose");
+  assert.equal(response.result.tools[0].name, "search");
 });
 
 test("lists registered tools", async () => {
@@ -60,7 +60,8 @@ test("lists registered tools", async () => {
   assert.ok("result" in response);
   assert.ok(response.result);
   assert.ok("tools" in response.result);
-  assert.equal(response.result.tools[0].name, "memory.propose");
+  assert.equal(response.result.tools[0].name, "search");
+  assert.equal(response.result.tools[1].name, "execute");
   assert.equal(
     response.result.tools.some((tool) => tool.name === "memory.decide_proposal"),
     false,
@@ -73,25 +74,38 @@ test("routes tools/call to the dispatcher", async () => {
     id: 2,
     method: "tools/call",
     params: {
-      name: "memory.propose",
-      arguments: {
-        items: [
-          {
-            kind: "preference",
-            content: "The user lives in London.",
-            scope: { type: "global" },
-          },
-        ],
-        idempotencyKey: "request-1",
-      },
+      name: "execute",
+      arguments: { operations: [], mode: "preview", idempotencyKey: "request-1" },
     },
   });
 
   assert.equal(response.id, 2);
   assert.ok("result" in response);
   assert.ok(response.result);
-  assert.ok("structuredContent" in response.result);
-  assert.equal(response.result.structuredContent?.status, "pending");
+  assert.equal(response.result.isError, true);
+});
+
+test("passes search calls to the supplied dispatcher", async () => {
+  let receivedName = "";
+
+  const response = await handleRequest(
+    {
+      jsonrpc: "2.0",
+      id: 3,
+      method: "tools/call",
+      params: { name: "search", arguments: { query: "notes", limit: 5 } },
+    },
+    async (request) => {
+      receivedName = request.name;
+
+      return { content: [{ type: "text", text: "search result" }] };
+    },
+  );
+
+  assert.equal(receivedName, "search");
+  assert.equal(response.id, 3);
+  assert.ok("result" in response);
+  assert.equal(response.result.content[0]?.text, "search result");
 });
 
 test("returns invalid params for malformed tools/call params", async () => {

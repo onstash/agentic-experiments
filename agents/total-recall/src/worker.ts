@@ -1,10 +1,9 @@
-/* Raw JSON is parsed by the MCP server boundary. */
-/* oxlint-disable anti-slop/no-unknown-parameters, anti-slop/no-runtime-typeof, anti-slop/require-safety-comment-for-type-assertion, anti-slop/require-readable-spacing */
-
 import { createAccessTokenValidator } from "./auth/access-token.ts";
 import { createLifeOsHttpClient } from "./life-os/http-client.ts";
-import { createMemoryGetProposalHandler } from "./server/handlers/memory-get-proposal.ts";
-import { createMemoryProposeHandler } from "./server/handlers/memory-propose.ts";
+import { parseJsonRpcRequest, parseToolsCallRequest } from "./protocol/parse.ts";
+import type { JsonValue } from "./protocol/tools.ts";
+import { createSearchHandler } from "./server/handlers/search.ts";
+import { createExecuteHandler } from "./server/handlers/execute.ts";
 import { createToolDispatcher } from "./server/dispatcher.ts";
 import { handleSdkRequest } from "./transport/sdk.ts";
 
@@ -20,7 +19,8 @@ export type Env = {
 };
 
 const MCP_RESOURCE = "https://total-recall.hastons.workers.dev/mcp";
-const MEMORY_SCOPES = ["total-recall.memory.propose", "total-recall.memory.get_proposal"];
+
+const MEMORY_SCOPES = ["total-recall.search", "total-recall.execute"];
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -48,8 +48,8 @@ export default {
     });
 
     const dispatch = createToolDispatcher({
-      "memory.propose": createMemoryProposeHandler(lifeOsClient),
-      "memory.get_proposal": createMemoryGetProposalHandler(lifeOsClient),
+      search: createSearchHandler(lifeOsClient),
+      execute: createExecuteHandler(lifeOsClient),
     });
 
     const authenticate = async (token: string) => {
@@ -59,6 +59,7 @@ export default {
     };
 
     const scopes = await authenticateToken(request, authenticate);
+
     if (!scopes) return unauthorizedResponse();
 
     if (request.method !== "POST") return new Response("Method Not Allowed", { status: 405 });
@@ -67,7 +68,9 @@ export default {
       .clone()
       .json()
       .catch(() => null);
+
     const missingScopes = requiredScopesForMessage(body).filter((scope) => !scopes.has(scope));
+
     if (missingScopes.length > 0) return insufficientScopeResponse(missingScopes);
 
     return handleSdkRequest(request, dispatch);
@@ -79,6 +82,7 @@ async function authenticateToken(
   authenticate: (token: string) => Promise<ReadonlySet<string> | null>,
 ): Promise<ReadonlySet<string> | null> {
   const header = request.headers.get("authorization");
+
   if (!header?.startsWith("Bearer ")) return null;
 
   return authenticate(header.slice("Bearer ".length));
@@ -102,15 +106,16 @@ function insufficientScopeResponse(scopes: readonly string[]): Response {
   });
 }
 
-function requiredScopesForMessage(input: unknown): readonly string[] {
-  if (typeof input !== "object" || input === null) return [];
+function requiredScopesForMessage(input: JsonValue): readonly string[] {
+  const parsed = parseJsonRpcRequest(input);
 
-  const message = input as { method?: unknown; params?: { name?: unknown } };
+  if (!parsed.ok || parsed.request.method !== "tools/call") return [];
 
-  if (message.method !== "tools/call" || typeof message.params?.name !== "string") return [];
+  const toolsCall = parseToolsCallRequest(parsed.request.params);
 
-  if (message.params.name === "memory.propose") return ["total-recall.memory.propose"];
-  if (message.params.name === "memory.get_proposal") return ["total-recall.memory.get_proposal"];
+  if (toolsCall?.name === "search") return ["total-recall.search"];
+
+  if (toolsCall?.name === "execute") return ["total-recall.execute"];
 
   return [];
 }
