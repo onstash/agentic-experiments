@@ -2,7 +2,8 @@ import type { Tool } from "../protocol/tools.ts";
 
 export const executeTool: Tool = {
   name: "execute",
-  description: "Execute a bounded batch of typed Life OS operations.",
+  description:
+    "Execute a bounded batch of typed Life OS operations and return their records or analysis. Use this after search to retrieve projects, tasks, notes, memories, or review results. Read operations use preview mode; commit mode is only for explicitly approved changes.",
   inputSchema: {
     type: "object",
     additionalProperties: false,
