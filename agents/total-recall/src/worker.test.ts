@@ -23,6 +23,7 @@ const integratedEnv: Env = {
               description: "Search memory",
               policy: "read",
               resultLimit: 20,
+              inputSchema: { type: "object", properties: { query: { type: "string" } } },
             },
           ],
         });

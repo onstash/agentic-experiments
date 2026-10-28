@@ -10,18 +10,22 @@ test("accepts a bounded preview execution", () => {
     idempotencyKey: "request-1",
   });
 
-  assert.ok(result);
-  assert.equal(result.mode, "preview");
-  assert.equal(result.operations[0]?.id, "memory.search");
+  assert.ok("value" in result);
+  assert.equal(result.value.mode, "preview");
+  assert.equal(result.value.operations[0]?.id, "memory.search");
 });
 
 test("rejects execution without an idempotency key", () => {
   const result = parseExecuteArguments({
-    operations: [{ id: "memory.search" }],
+    operations: [{ id: "memory.search", input: {} }],
     mode: "preview",
   });
 
-  assert.equal(result, null);
+  assert.ok("error" in result);
+
+  assert.equal(result.error.code, "INVALID_OPERATION_INPUT");
+
+  assert.equal(result.error.path, "execute.idempotencyKey");
 });
 
 test("rejects an empty operation batch", () => {
@@ -31,5 +35,27 @@ test("rejects an empty operation batch", () => {
     idempotencyKey: "request-1",
   });
 
-  assert.equal(result, null);
+  assert.ok("error" in result);
+});
+
+test("rejects args instead of silently accepting the wrong operation envelope", () => {
+  const result = parseExecuteArguments({
+    operations: [{ id: "notes.get", args: { id: "note-1" }, input: {} }],
+    mode: "preview",
+    idempotencyKey: "request-1",
+  });
+
+  assert.ok("error" in result);
+  assert.equal(result.error.code, "INVALID_OPERATION_INPUT");
+});
+
+test("reports a missing operation input path", () => {
+  const result = parseExecuteArguments({
+    operations: [{ id: "notes.get" }],
+    mode: "preview",
+    idempotencyKey: "request-1",
+  });
+
+  assert.ok("error" in result);
+  assert.equal(result.error.path, "operations[0].input");
 });

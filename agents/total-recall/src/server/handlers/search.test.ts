@@ -13,7 +13,13 @@ test("search forwards parsed capability queries to Life OS", async () => {
 
       return {
         capabilities: [
-          { id: "notes.search", description: "Search notes", policy: "read", resultLimit: 50 },
+          {
+            id: "notes.search",
+            description: "Search notes",
+            policy: "read",
+            resultLimit: 50,
+            inputSchema: { type: "object", properties: { query: { type: "string" } } },
+          },
         ],
       };
     },
@@ -34,6 +40,17 @@ test("search forwards parsed capability queries to Life OS", async () => {
   assert.deepEqual(received, { query: "notes", limit: 5 });
   assert.equal(result.isError, undefined);
   assert.match(result.content[0]?.text ?? "", /notes.search/);
+  assert.deepEqual(result.structuredContent, {
+    capabilities: [
+      {
+        id: "notes.search",
+        description: "Search notes",
+        policy: "read",
+        resultLimit: 50,
+        inputSchema: { type: "object", properties: { query: { type: "string" } } },
+      },
+    ],
+  });
 });
 
 test("search rejects invalid arguments before calling Life OS", async () => {

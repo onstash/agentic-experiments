@@ -4,12 +4,16 @@ import { parseExecuteArguments } from "../../validation/execute.ts";
 
 export function createExecuteHandler(client: LifeOsClient) {
   return async (args: { [key: string]: JsonValue }): Promise<CallToolResult> => {
-    const input = parseExecuteArguments(args);
+    const parsed = parseExecuteArguments(args);
 
-    if (!input)
-      return { content: [{ type: "text", text: "Invalid execute arguments." }], isError: true };
+    if ("error" in parsed)
+      return {
+        content: [{ type: "text", text: JSON.stringify(parsed.error) }],
+        structuredContent: parsed.error,
+        isError: true,
+      };
 
-    const result = await client.execute(input);
+    const result = await client.execute(parsed.value);
 
     return { content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result };
   };

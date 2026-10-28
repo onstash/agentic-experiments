@@ -38,6 +38,7 @@ jobs:
       - run: pnpm --filter ./agents/total-recall run typecheck
       - run: pnpm --filter ./agents/total-recall run test
       - run: pnpm --filter ./agents/total-recall run check:agent-contract
+      - run: pnpm --filter ./agents/total-recall run check:mcp-contract
 
   deploy-total-recall:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
