@@ -4,6 +4,8 @@
     ".": {
       "release-type": "simple",
       "package-name": "total-recall",
+      "component": "total-recall",
+      "include-component-in-tag": true,
       "changelog-path": "CHANGELOG.md"
     }
   }
