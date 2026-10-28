@@ -1,0 +1,64 @@
+name: Verify Total Recall
+
+on:
+  pull_request:
+    paths:
+      - "agents/total-recall/**"
+      - ".github/workflows/total-recall-verify.yml"
+  push:
+    branches: [main]
+    paths:
+      - "agents/total-recall/**"
+      - ".github/workflows/total-recall-verify.yml"
+      - "!agents/total-recall/CHANGELOG.md"
+      - "!agents/total-recall/.release-please-manifest.json"
+      - "!agents/total-recall/release-please-config.json"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: agents/total-recall
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./agents/total-recall run format:check
+      - run: pnpm --filter ./agents/total-recall run lint
+      - run: pnpm --filter ./agents/total-recall run typecheck
+      - run: pnpm --filter ./agents/total-recall run test
+
+  deploy-total-recall:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: verify
+    runs-on: ubuntu-latest
+    concurrency:
+      group: total-recall-production
+      cancel-in-progress: false
+    defaults:
+      run:
+        working-directory: agents/total-recall
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter ./agents/total-recall run deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_TOTAL_RECALL_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

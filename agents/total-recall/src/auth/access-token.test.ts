@@ -31,7 +31,7 @@ test("accepts a Life OS token with the expected issuer and resource audience", a
   const port = (address as AddressInfo).port;
 
   try {
-    const token = await new SignJWT({ scope: "total-recall.memory.propose" })
+    const token = await new SignJWT({ scope: "total-recall.search total-recall.execute" })
       .setProtectedHeader({ alg: "EdDSA", kid: "life-os-key" })
       .setIssuer(issuer)
       .setAudience(audience)
@@ -47,7 +47,7 @@ test("accepts a Life OS token with the expected issuer and resource audience", a
 
     const scopes = await validate(token);
 
-    assert.deepEqual([...(scopes ?? [])], ["total-recall.memory.propose"]);
+    assert.deepEqual([...(scopes ?? [])], ["total-recall.search", "total-recall.execute"]);
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((error) => (error ? reject(error) : resolve())),

@@ -33,6 +33,15 @@ importers:
         specifier: ^6.2.13
         version: 6.2.13
     devDependencies:
+      '@oxlint/plugins':
+        specifier: ^1.87.0
+        version: 1.87.0
+      oxfmt:
+        specifier: ^0.72.0
+        version: 0.72.0
+      oxlint:
+        specifier: ^1.87.0
+        version: 1.87.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

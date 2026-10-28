@@ -33,8 +33,8 @@ Total Recall must act as an OAuth 2.1 protected resource server:
 ## Proposed scopes
 
 ```text
-total-recall.memory.propose
-total-recall.memory.get_proposal
+total-recall.search
+total-recall.execute
 ```
 
 There is deliberately no decision scope. Life OS remains the human approval

@@ -3,7 +3,7 @@ pre-commit:
   commands:
     format:
       run: |
-        files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx|json|yaml|yml)$' | grep -Ev '^(\.agents|tools/oxlint/anti-slop)/' || true)
+        files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(ts|tsx|js|jsx|json|yaml|yml)$' | grep -Ev '^(\.agents|tools/oxlint/anti-slop)/|(^|/)pnpm-lock\.yaml$|(^|/)package-lock\.json$' || true)
         test -z "$files" || pnpm exec oxfmt --check $files
     lint:
       run: |
