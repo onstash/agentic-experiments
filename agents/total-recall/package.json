@@ -3,6 +3,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "lint": "oxlint --deny-warnings .",
     "test": "node --test 'src/**/*.test.ts' 'tests/**/*.test.mjs'",
     "typecheck": "tsc --noEmit"
   },

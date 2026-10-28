@@ -92,9 +92,8 @@ test("accepts MCP notifications without a JSON-RPC response", async () => {
 
 test("rejects tool calls without their required scope", async () => {
   const handler = createHttpHandler({
-    authenticate: async () => new Set(["total-recall.memory.propose"]),
-    requiredScopes: (input) =>
-      isMemoryGetProposalCall(input) ? ["total-recall.memory.get_proposal"] : [],
+    authenticate: async () => new Set(["total-recall.execute"]),
+    requiredScopes: (input) => (isSearchCall(input) ? ["total-recall.search"] : []),
     resourceMetadataUrl: "https://total-recall.test/.well-known/oauth-protected-resource/mcp",
   });
 
@@ -106,7 +105,7 @@ test("rejects tool calls without their required scope", async () => {
         jsonrpc: "2.0",
         id: 1,
         method: "tools/call",
-        params: { name: "memory.get_proposal" },
+        params: { name: "search" },
       }),
     }),
   );
@@ -137,10 +136,10 @@ test("routes valid MCP messages", async () => {
   assert.equal(response.headers.get("Content-Type"), "application/json");
 });
 
-function isMemoryGetProposalCall(input: JsonValue): boolean {
+function isSearchCall(input: JsonValue): boolean {
   const parsed = parseJsonRpcRequest(input);
 
   if (!parsed.ok || parsed.request.method !== "tools/call") return false;
 
-  return parseToolsCallRequest(parsed.request.params)?.name === "memory.get_proposal";
+  return parseToolsCallRequest(parsed.request.params)?.name === "search";
 }
