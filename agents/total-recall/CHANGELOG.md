@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.1...total-recall-v0.2.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* **mcp:** enforce operation contracts ([#19](https://github.com/onstash/agentic-experiments/issues/19)) ([3a1b63e](https://github.com/onstash/agentic-experiments/commit/3a1b63e11ededa7bfe86473dc034db8bd5e63ff1))
+
 ## [0.2.1](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.0...total-recall-v0.2.1) (2026-10-28)
 
 
