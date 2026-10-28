@@ -33,6 +33,9 @@ importers:
         specifier: ^6.2.13
         version: 6.2.13
     devDependencies:
+      '@oxlint/plugins':
+        specifier: ^1.87.0
+        version: 1.87.0
       oxfmt:
         specifier: ^0.72.0
         version: 0.72.0
