@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.0...total-recall-v0.2.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **mcp:** clarify retrieval workflow ([#15](https://github.com/onstash/agentic-experiments/issues/15)) ([867134b](https://github.com/onstash/agentic-experiments/commit/867134b635a5479d7d33b818fdf1aba83e7f60c1))
+
 ## [0.2.0](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.1.0...total-recall-v0.2.0) (2026-10-28)
 
 
