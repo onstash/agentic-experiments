@@ -62,6 +62,8 @@ test("lists registered tools", async () => {
   assert.ok("tools" in response.result);
   assert.equal(response.result.tools[0].name, "search");
   assert.equal(response.result.tools[1].name, "execute");
+  assert.match(response.result.tools[0].description, /does not return Life OS records/);
+  assert.match(response.result.tools[1].description, /return their records or analysis/);
   assert.equal(
     response.result.tools.some((tool) => tool.name === "memory.decide_proposal"),
     false,

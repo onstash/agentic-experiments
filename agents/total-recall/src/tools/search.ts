@@ -2,7 +2,8 @@ import type { Tool } from "../protocol/tools.ts";
 
 export const searchTool: Tool = {
   name: "search",
-  description: "Discover the typed Life OS capabilities relevant to an intent.",
+  description:
+    "Discover typed Life OS capabilities for an intent. Capability discovery only; this does not return Life OS records. Use execute to retrieve projects, tasks, notes, or memories.",
   inputSchema: {
     type: "object",
     additionalProperties: false,
