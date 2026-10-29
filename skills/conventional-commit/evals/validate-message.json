@@ -1,0 +1,10 @@
+{
+  "id": "validate-message",
+  "skill": "conventional-commit",
+  "scenario": "Draft and validate a Conventional Commit message for a medium-sized change.",
+  "acceptanceCriteria": [
+    "The subject has a valid type, optional scope, and concise description.",
+    "The body is included when the diff warrants it.",
+    "Literal escaped newline sequences are rejected."
+  ]
+}

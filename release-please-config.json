@@ -8,6 +8,78 @@
       "component": "pi-checklist",
       "include-component-in-tag": true,
       "changelog-path": "CHANGELOG.md"
+    },
+    "skills/babysit-pr": {
+      "release-type": "simple",
+      "package-name": "babysit-pr",
+      "component": "babysit-pr",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/commit-safely": {
+      "release-type": "simple",
+      "package-name": "commit-safely",
+      "component": "commit-safely",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/conventional-commit": {
+      "release-type": "simple",
+      "package-name": "conventional-commit",
+      "component": "conventional-commit",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/create-or-update-pr": {
+      "release-type": "simple",
+      "package-name": "create-or-update-pr",
+      "component": "create-or-update-pr",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/implement-and-verify": {
+      "release-type": "simple",
+      "package-name": "implement-and-verify",
+      "component": "implement-and-verify",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/merge-and-rebase": {
+      "release-type": "simple",
+      "package-name": "merge-and-rebase",
+      "component": "merge-and-rebase",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/prepare-worktree": {
+      "release-type": "simple",
+      "package-name": "prepare-worktree",
+      "component": "prepare-worktree",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/rca-and-prevention": {
+      "release-type": "simple",
+      "package-name": "rca-and-prevention",
+      "component": "rca-and-prevention",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
+    },
+    "skills/ship-change-safely": {
+      "release-type": "simple",
+      "package-name": "ship-change-safely",
+      "component": "ship-change-safely",
+      "include-component-in-tag": true,
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "version.txt"
     }
   }
 }

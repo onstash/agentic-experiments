@@ -1,0 +1,10 @@
+{
+  "id": "evidence-first-rca",
+  "skill": "rca-and-prevention",
+  "scenario": "Analyze a repeated failure and propose prevention with objective proof.",
+  "acceptanceCriteria": [
+    "Observed facts are separated from hypotheses and root causes.",
+    "Each corrective action has an owner, acceptance criterion, and verification artifact.",
+    "The result is blameless and uncertainty is stated explicitly."
+  ]
+}

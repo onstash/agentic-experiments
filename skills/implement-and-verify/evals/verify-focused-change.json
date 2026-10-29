@@ -1,0 +1,10 @@
+{
+  "id": "verify-focused-change",
+  "skill": "implement-and-verify",
+  "scenario": "Implement a focused repository change and prove it with the smallest relevant checks.",
+  "acceptanceCriteria": [
+    "Applicable instructions and relevant files are read before editing.",
+    "Formatting, lint, typecheck, and focused tests are run when configured.",
+    "Commands and failures are reported with actionable evidence."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "merge-authorized-pr",
+  "skill": "merge-and-rebase",
+  "scenario": "Merge a verified pull request after explicit authorization.",
+  "acceptanceCriteria": [
+    "Required checks pass and the PR has no unresolved conflicts or review blockers.",
+    "The merge commit or squash commit SHA is recorded.",
+    "The base branch is checked out and updated without destructive cleanup."
+  ]
+}

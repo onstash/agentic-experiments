@@ -1,0 +1,10 @@
+{
+  "id": "commit-staged-change",
+  "skill": "commit-safely",
+  "scenario": "Create a reviewable commit from an already verified staged change.",
+  "acceptanceCriteria": [
+    "Only requested staged files are committed.",
+    "The message uses Conventional Commits format with real line breaks.",
+    "The resulting commit message is validated after commit."
+  ]
+}

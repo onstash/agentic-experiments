@@ -1,0 +1,10 @@
+{
+  "id": "prepare-dirty-worktree",
+  "skill": "prepare-worktree",
+  "scenario": "Prepare a repository with unrelated dirty and untracked files before implementation.",
+  "acceptanceCriteria": [
+    "Starting branch, upstream, commit, and dirty paths are recorded.",
+    "Unrelated user changes are preserved.",
+    "A descriptive branch is created from the intended base without destructive commands."
+  ]
+}

@@ -8,6 +8,7 @@
     "lint": "oxlint .",
     "build": "pnpm --filter pi-checklist build",
     "verify": "pnpm format:check && pnpm lint && pnpm build",
+    "verify:skills": "oxfmt --check skills/*/SKILL.md scripts/*.mjs && oxlint --deny-warnings scripts/*.mjs",
     "check:commit-message": "node scripts/check-commit-message.mjs",
     "prepare": "lefthook install"
   },
