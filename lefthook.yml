@@ -12,3 +12,8 @@ pre-commit:
     checklist-build:
       glob: "pi-extensions/pi-checklist/**"
       run: pnpm --filter pi-checklist build
+
+commit-msg:
+  commands:
+    commit-message:
+      run: pnpm check:commit-message -- {1}

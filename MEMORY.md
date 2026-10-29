@@ -27,3 +27,8 @@ agents guessing backend fields. Life OS capability discovery must publish the
 operation-specific `inputSchema`, and Total Recall must preserve it. Run
 `pnpm --filter ./agents/total-recall run check:mcp-contract` when changing the
 MCP tool or Life OS client contract.
+## 2026-10-29 — Commit bodies must contain real line breaks
+
+Never pass literal `\\n` or `\\r` escapes in a commit body. Use separate
+`-m` arguments or shell `$'...'` quoting. The `commit-msg` hook rejects escaped
+line sequences before Git creates the commit.
