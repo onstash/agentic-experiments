@@ -1,0 +1,10 @@
+{
+  "id": "monitor-open-pr",
+  "skill": "babysit-pr",
+  "scenario": "Monitor an open pull request until checks, conflicts, and review state are known.",
+  "acceptanceCriteria": [
+    "The PR URL and current head commit are identified.",
+    "Checks, conflicts, reviews, and deployment status are reported from provider evidence.",
+    "Monitoring stops before handing the PR back to the user."
+  ]
+}

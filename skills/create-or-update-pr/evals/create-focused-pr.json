@@ -1,0 +1,10 @@
+{
+  "id": "create-focused-pr",
+  "skill": "create-or-update-pr",
+  "scenario": "Open or update a pull request for a verified focused branch.",
+  "acceptanceCriteria": [
+    "The PR title and body match the actual diff.",
+    "Verification commands and known limitations are included.",
+    "The PR is registered with the host orchestration system."
+  ]
+}

@@ -1,0 +1,60 @@
+name: Verify agent skills
+
+on:
+  pull_request:
+    paths:
+      - "skills/**"
+      - "scripts/*.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/skills-verify.yml"
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "scripts/*.mjs"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/skills-verify.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      skills: ${{ steps.skills.outputs.skills }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: skills
+        shell: bash
+        run: |
+          skills=$(find skills -mindepth 2 -maxdepth 2 -name SKILL.md -print \
+            | sed -E 's#^skills/([^/]+)/SKILL.md$#\1#' \
+            | sort | jq -Rsc 'split("\\n") | map(select(length > 0))')
+          echo "skills=$skills" >> "$GITHUB_OUTPUT"
+
+  verify:
+    needs: discover
+    strategy:
+      fail-fast: false
+      matrix:
+        skill: ${{ fromJSON(needs.discover.outputs.skills) }}
+    name: verify/${{ matrix.skill }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec oxfmt --check "skills/${{ matrix.skill }}/SKILL.md"
+      - run: test -s "skills/${{ matrix.skill }}/SKILL.md"
+      - run: pnpm exec node scripts/verify-skill-frontmatter.mjs "skills/${{ matrix.skill }}/SKILL.md"
+      - run: pnpm exec node scripts/run-skill-evals.mjs "${{ matrix.skill }}"

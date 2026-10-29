@@ -1,3 +1,12 @@
 {
-  "pi-extensions/pi-checklist": "0.4.0"
+  "pi-extensions/pi-checklist": "0.4.0",
+  "skills/babysit-pr": "0.1.0",
+  "skills/commit-safely": "0.1.0",
+  "skills/conventional-commit": "0.1.0",
+  "skills/create-or-update-pr": "0.1.0",
+  "skills/implement-and-verify": "0.1.0",
+  "skills/merge-and-rebase": "0.1.0",
+  "skills/prepare-worktree": "0.1.0",
+  "skills/rca-and-prevention": "0.1.0",
+  "skills/ship-change-safely": "0.1.0"
 }

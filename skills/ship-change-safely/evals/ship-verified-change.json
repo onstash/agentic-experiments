@@ -1,0 +1,10 @@
+{
+  "id": "ship-verified-change",
+  "skill": "ship-change-safely",
+  "scenario": "Coordinate a repository change from worktree preparation through verified PR completion.",
+  "acceptanceCriteria": [
+    "Preparation, implementation, verification, commit, PR, and monitoring stages are completed in order.",
+    "The repository-specific adapter supplies commands and deployment policy.",
+    "Merge and deployment are never claimed without provider evidence."
+  ]
+}
