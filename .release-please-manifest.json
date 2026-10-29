@@ -1,7 +1,7 @@
 {
   "pi-extensions/pi-checklist": "0.4.0",
   "skills/babysit-pr": "0.1.0",
-  "skills/commit-safely": "0.1.0",
+  "skills/commit-safely": "0.2.0",
   "skills/conventional-commit": "0.1.0",
   "skills/create-or-update-pr": "0.1.0",
   "skills/implement-and-verify": "0.1.0",
