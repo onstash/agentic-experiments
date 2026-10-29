@@ -32,7 +32,7 @@ jobs:
         run: |
           skills=$(find skills -mindepth 2 -maxdepth 2 -name SKILL.md -print \
             | sed -E 's#^skills/([^/]+)/SKILL.md$#\1#' \
-            | sort | jq -Rsc 'split("\\n") | map(select(length > 0))')
+            | sort | jq -Rsc 'split("\n") | map(select(length > 0))')
           echo "skills=$skills" >> "$GITHUB_OUTPUT"
 
   verify:
