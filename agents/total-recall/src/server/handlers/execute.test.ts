@@ -71,13 +71,24 @@ test("execute rejects invalid arguments before calling Life OS", async () => {
   assert.equal(result.isError, true);
 });
 
-test("execute preserves Life OS failures for the MCP boundary", async () => {
+test("execute returns structured Life OS failures to the MCP boundary", async () => {
   const client = {
     async searchCapabilities() {
       return { capabilities: [] };
     },
     async execute() {
-      throw new Error("Life OS unavailable");
+      const { LifeOsApiError } = await import("../../life-os/http-client.ts");
+
+      throw new LifeOsApiError(
+        500,
+        "Life OS unavailable",
+        "https://life-os.test/api/private/agent/execute",
+        JSON.stringify({
+          code: "PROPOSAL_PERSISTENCE_FAILED",
+          error: "Unable to create memory proposal.",
+          retryable: true,
+        }),
+      );
     },
     async proposeMemory() {
       throw new Error("unused");
@@ -87,12 +98,21 @@ test("execute preserves Life OS failures for the MCP boundary", async () => {
     },
   } satisfies LifeOsClient;
 
-  await assert.rejects(
-    createExecuteHandler(client)({
-      operations: [{ id: "memory.search", input: { query: "work" } }],
-      mode: "commit",
-      idempotencyKey: "failure-test",
+  const result = await createExecuteHandler(client)({
+    operations: [{ id: "memory.search", input: { query: "work" } }],
+    mode: "commit",
+    idempotencyKey: "failure-test",
+  });
+
+  assert.equal(result.isError, true);
+  assert.deepEqual(result.structuredContent, {
+    code: "LIFE_OS_EXECUTION_FAILED",
+    message: JSON.stringify({
+      code: "PROPOSAL_PERSISTENCE_FAILED",
+      error: "Unable to create memory proposal.",
+      retryable: true,
     }),
-    /Life OS unavailable/,
-  );
+    retryable: false,
+    status: 500,
+  });
 });
