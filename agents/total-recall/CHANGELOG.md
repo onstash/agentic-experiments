@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.2...total-recall-v0.2.3) (2026-10-29)
+
+
+### Bug Fixes
+
+* **mcp:** clarify execute contract ([#21](https://github.com/onstash/agentic-experiments/issues/21)) ([81dfe62](https://github.com/onstash/agentic-experiments/commit/81dfe62d5c30c35d6c4ea8a6cecad031030fcc8c))
+
 ## [0.2.2](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.1...total-recall-v0.2.2) (2026-10-28)
 
 
