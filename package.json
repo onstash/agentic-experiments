@@ -10,6 +10,7 @@
     "verify": "pnpm format:check && pnpm lint && pnpm build",
     "verify:skills": "oxfmt --check skills/*/SKILL.md scripts/*.mjs && oxlint --deny-warnings scripts/*.mjs",
     "check:commit-message": "node scripts/check-commit-message.mjs",
+    "analyze:performance-trace": "node scripts/analyze-performance-trace.mjs",
     "prepare": "lefthook install"
   },
   "devDependencies": {
