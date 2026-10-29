@@ -8,6 +8,7 @@
     "lint": "oxlint .",
     "build": "pnpm --filter pi-checklist build",
     "verify": "pnpm format:check && pnpm lint && pnpm build",
+    "check:commit-message": "node scripts/check-commit-message.mjs",
     "prepare": "lefthook install"
   },
   "devDependencies": {
