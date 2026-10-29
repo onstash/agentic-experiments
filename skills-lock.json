@@ -1,11 +1,56 @@
 {
   "version": 1,
   "skills": {
+    "babysit-pr": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "08fac2ff3fd1dad341b9ae9513e1c5669d3abde76c220a4251dd6fd63957ac36"
+    },
+    "commit-safely": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "74b9a34a4e13140fbb7980c2d08f7758de3d063b1c0cb4507259db783c225819"
+    },
+    "conventional-commit": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "360338fa7b40dca764e48cd0a9cc61a1298bd514c357f0a30f49e36d1359a2e9"
+    },
+    "create-or-update-pr": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "ba0e0ca28c99546695b7908506921ab8a3617b2a7acf3403a72c4b2c5583748e"
+    },
+    "implement-and-verify": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "0dc34dafc8592ab8445b8b637954a373e995bfe39490e377006d998cf1b1e81c"
+    },
     "install-anti-slop": {
       "source": "dmmulroy/anti-slop",
       "sourceType": "github",
       "skillPath": "skills/install-anti-slop/SKILL.md",
       "computedHash": "4031728fbe75bdcad6ee3208fd52b5d66e167b056fefee1fa9758e9a6cb9c0c8"
+    },
+    "merge-and-rebase": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "903d17ae0c036e1c16d5f9ba249a1b0b4ecbd6099a6c64ad773e02b47c8a007e"
+    },
+    "prepare-worktree": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "571c0d0340a206f68e7473361f8bde6440f54ade7a15cad2091dcb31d2b1f7ab"
+    },
+    "rca-and-prevention": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "af2c628c39a0eec621ac81b04daf276f87a8ad4d8a53f75c18c5a4a62a22de31"
+    },
+    "ship-change-safely": {
+      "source": ".",
+      "sourceType": "local",
+      "computedHash": "cd6152ef23f898a16d64e7523d848e3b8e5dd84b53489b4656ac84bf4b84dd74"
     }
   }
 }
