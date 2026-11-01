@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.3...total-recall-v0.2.4) (2026-11-01)
+
+
+### Bug Fixes
+
+* **mcp:** preserve Life OS execution errors ([#35](https://github.com/onstash/agentic-experiments/issues/35)) ([de84255](https://github.com/onstash/agentic-experiments/commit/de842559def9d10b1aca09c88c26b9a771670461))
+
 ## [0.2.3](https://github.com/onstash/agentic-experiments/compare/total-recall-v0.2.2...total-recall-v0.2.3) (2026-10-29)
 
 
