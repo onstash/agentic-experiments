@@ -67,6 +67,7 @@ test("lists registered tools", async () => {
     response.result.tools[1].description,
     /return records, analysis, or proposal results/,
   );
+  assert.match(response.result.tools[1].description, /pending proposalId/);
   assert.equal(
     response.result.tools.some((tool) => tool.name === "memory.decide_proposal"),
     false,

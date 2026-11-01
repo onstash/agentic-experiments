@@ -71,7 +71,7 @@ test("execute rejects invalid arguments before calling Life OS", async () => {
   assert.equal(result.isError, true);
 });
 
-test("execute returns structured Life OS failures to the MCP boundary", async () => {
+test("execute preserves structured Life OS failures at the MCP boundary", async () => {
   const client = {
     async searchCapabilities() {
       return { capabilities: [] };
@@ -106,13 +106,58 @@ test("execute returns structured Life OS failures to the MCP boundary", async ()
 
   assert.equal(result.isError, true);
   assert.deepEqual(result.structuredContent, {
-    code: "LIFE_OS_EXECUTION_FAILED",
-    message: JSON.stringify({
-      code: "PROPOSAL_PERSISTENCE_FAILED",
-      error: "Unable to create memory proposal.",
-      retryable: true,
-    }),
-    retryable: false,
+    code: "PROPOSAL_PERSISTENCE_FAILED",
+    error: "Unable to create memory proposal.",
+    message: "Unable to create memory proposal.",
+    retryable: true,
     status: 500,
+  });
+});
+
+test("execute preserves proposal action guidance for rejected requests", async () => {
+  const client = {
+    async searchCapabilities() {
+      return { capabilities: [] };
+    },
+    async execute() {
+      const { LifeOsApiError } = await import("../../life-os/http-client.ts");
+
+      throw new LifeOsApiError(
+        409,
+        "Life OS rejected the request",
+        "https://life-os.test/api/private/agent/execute",
+        JSON.stringify({
+          code: "STALE_NOTE",
+          error: "The note changed after it was read.",
+          operation: "notes.update",
+          retryable: true,
+          allowedNextActions: ["retry_preview"],
+          requestId: "request-42",
+        }),
+      );
+    },
+    async proposeMemory() {
+      throw new Error("unused");
+    },
+    async getProposal() {
+      throw new Error("unused");
+    },
+  } satisfies LifeOsClient;
+
+  const result = await createExecuteHandler(client)({
+    operations: [{ id: "notes.update", input: { id: "note-1", body: "new" } }],
+    mode: "preview",
+    idempotencyKey: "request-42",
+  });
+
+  assert.deepEqual(result.structuredContent, {
+    code: "STALE_NOTE",
+    error: "The note changed after it was read.",
+    operation: "notes.update",
+    retryable: true,
+    allowedNextActions: ["retry_preview"],
+    requestId: "request-42",
+    message: "The note changed after it was read.",
+    status: 409,
   });
 });
