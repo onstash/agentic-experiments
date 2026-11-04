@@ -1,0 +1,4 @@
+interface:
+  display_name: "Laws of UX"
+  short_description: "Apply UX psychology principles to interface reviews"
+  default_prompt: "Use Laws of UX to analyze this interface or product decision, cite relevant principles, and propose testable improvements."
