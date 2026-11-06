@@ -1,0 +1,56 @@
+name: Verify cloud-coding
+
+on:
+  pull_request:
+    paths:
+      - "agents/cloud-coding/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - ".oxlintrc.json"
+      - ".oxfmtrc.json"
+      - ".github/workflows/cloud-coding-verify.yml"
+  push:
+    branches: [main]
+    paths:
+      - "agents/cloud-coding/**"
+      - "pnpm-lock.yaml"
+      - "pnpm-workspace.yaml"
+      - "package.json"
+      - ".oxlintrc.json"
+      - ".oxfmtrc.json"
+      - ".github/workflows/cloud-coding-verify.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.10.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec oxfmt --check agents/cloud-coding/src agents/cloud-coding/scripts agents/cloud-coding/test
+
+      - run: pnpm exec oxlint agents/cloud-coding/src agents/cloud-coding/scripts agents/cloud-coding/test
+
+      - run: pnpm --filter cloud-coding typecheck
+
+      - run: >-
+          node --test
+          agents/cloud-coding/test/local-broker.test.mjs
+          agents/cloud-coding/test/patch.test.mjs
+          agents/cloud-coding/test/prepare.integration.test.mjs
+          agents/cloud-coding/test/snapshot.test.mjs
