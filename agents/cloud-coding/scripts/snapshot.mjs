@@ -110,7 +110,11 @@ export function verifyTarget(id, requireNoNetwork = false) {
       container.Config.Image,
     ) ||
     container.Mounts.length !== 0 ||
-    (requireNoNetwork && container.HostConfig.NetworkMode !== "none")
+    (requireNoNetwork &&
+      (container.HostConfig.NetworkMode !== "none" ||
+        !container.NetworkSettings?.Networks ||
+        Object.keys(container.NetworkSettings.Networks).length !== 1 ||
+        !("none" in container.NetworkSettings.Networks)))
   )
     throw new Error(
       "Target must be the full ID of a running local cloud-coding workspace with no mounts (and network mode none when required)",

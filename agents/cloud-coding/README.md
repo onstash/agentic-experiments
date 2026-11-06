@@ -56,13 +56,13 @@ Use an HTTPS MCP URL and keep the bearer token in the client environment.
 
 ## Current limits
 
-- The local smoke test uses an MCP client. It does not prove that a Codex session completed the task.
+- The local bridge has been tested with Codex and a small Prompt Shelf snapshot.
 - Cloudflare deployment and deployed network isolation have not yet been tested.
-- The server uses one shared fixture workspace for all holders of the token. It is for one trusted user and one task at a time.
+- The server uses one shared workspace for all holders of the token. It is for one trusted user and one task at a time.
 - The workspace is disposable. Cleanup or inactivity deletes its files.
 - Commands time out and output is capped. The implementation does not fully contain hostile process trees or output-file tampering.
 - Command status does not survive a client disconnect. An interrupted command may have changed the workspace.
-- The server starts with the bundled fixture. The optional local host-side snapshot command can add reviewed committed files. The server does not clone repositories or install packages.
+- The standard server starts with the bundled fixture. The local bridge can use a separately prepared workspace. Neither server clones repositories.
 - The patch is a `diff -u` result. The managed image does not provide Git.
 - Code Mode is experimental. Its APIs may change.
 
@@ -109,11 +109,10 @@ Review files with `git show <reviewed-commit-id>:path/to/file` before the copy.
 
 ## Prepare files and dependencies offline
 
-This local workflow creates a separate Docker execution container. It does not
-connect that container to the MCP server. The managed local workspace shares a
-network namespace with a proxy. It does not use Docker network mode `none`.
-The preparation command rejects it. Use `docker exec` to work in the separate
-container. This workflow does not deploy anything.
+This local workflow creates a separate Docker execution container. The managed
+local workspace shares a network namespace with a proxy. The preparation command
+rejects it. The local bridge below connects the separate container to MCP.
+This workflow does not deploy anything.
 
 Review the exact commit and every selected file as described above. Include the
 root manifest, lockfile, workspace configuration, each selected workspace
@@ -195,3 +194,55 @@ a setup image with pnpm 10 and the matching managed Node image digest:
 CLOUD_CODING_TEST_IMAGE=<setup-image> CLOUD_CODING_NODE_IMAGE=<node-image-with-digest> \
   node --test agents/cloud-coding/test/prepare.integration.test.mjs
 ```
+
+## Connect the offline container to Codex
+
+The local bridge connects the prepared container to Cloudflare Code Mode. It
+uses Docker on the host. The container receives no Docker socket or bridge token.
+The bridge accepts one container ID and checks its network and mounts before each
+command. This is a local experiment, not a production isolation boundary. It does
+not automatically destroy the execution container or persist command status.
+
+The preparation step can also use cached pnpm verification metadata. Set
+`LOCAL_PNPM_CACHE_PATH` to the host pnpm cache directory before `prepare.mjs`.
+The setup container copies that cache. It is not mounted in the execution
+container. Keep secrets out of the cache and review packages before use.
+The install remains offline and uses `--ignore-scripts`.
+
+After preparing the workspace, set a random bridge token and a separate random
+MCP token in your shell. Use values of at least 32 bytes. Do not put them in chat
+or commit them. Set `LOCAL_BROKER_CONTAINER_ID` to the full prepared container ID.
+Start the local bridge:
+
+```sh
+node agents/cloud-coding/scripts/local-broker.mjs
+```
+
+Create a private temporary env file containing `LOCAL_BROKER_TOKEN` and
+`MCP_BEARER_TOKEN`. Start the local Worker with that file:
+
+```sh
+pnpm --filter cloud-coding exec wrangler dev --local --config wrangler.local.jsonc --port 8802 --env-file /path/to/private-env-file
+```
+
+Connect a local Codex MCP client to `http://127.0.0.1:8802/mcp` with the MCP
+token. The agent can call `search` and `execute`. Commands start in `/`; use
+`cd /workspace/snapshot` to reach the prepared files. Stop the bridge and Worker
+when finished. Remove the temporary env file and destroy the execution container.
+
+For a Prompt Shelf snapshot with `app/src/lib/compile-prompt.ts` and its test,
+run this smoke test from the repository root. Set `MCP_BEARER_TOKEN` in the
+environment first.
+
+```sh
+node agents/cloud-coding/test/local-bridge-smoke.mjs
+```
+
+It checks MCP authentication, tool discovery, a project dependency, and the
+copied test. It also checks for named credential variables and the Docker socket,
+then makes one external network request that must fail.
+
+The execution container holds only the files selected for the snapshot and the
+installed dependencies. The setup host and packages must still be trusted. A
+single failed external request does not prove that every network path is blocked.
+Never deploy `wrangler.local.jsonc`; it is for local development only.

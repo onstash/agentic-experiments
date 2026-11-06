@@ -41,6 +41,13 @@ try {
     throw new Error("Setup and execution images must use the same OS and architecture");
   }
 
+  const cacheMount = process.env.LOCAL_PNPM_CACHE_PATH
+    ? [
+        "--mount",
+        `type=bind,src=${resolve(process.env.LOCAL_PNPM_CACHE_PATH)},dst=/metadata-cache,readonly`,
+      ]
+    : [];
+
   setup = docker([
     "create",
     "--network",
@@ -51,6 +58,7 @@ try {
     "no-new-privileges",
     "--mount",
     `type=bind,src=${resolve(store)},dst=/cache,readonly`,
+    ...cacheMount,
     "--entrypoint",
     "sleep",
     image,
@@ -66,7 +74,7 @@ try {
       setup,
       "sh",
       "-ec",
-      'store=$(pnpm store path --store-dir /tmp/pnpm-store); mkdir -p "$store"; cp -a /cache/. "$store"/; cd /workspace/snapshot; pnpm install --offline --ignore-scripts --frozen-lockfile --store-dir /tmp/pnpm-store',
+      'store=$(pnpm store path --store-dir /tmp/pnpm-store); mkdir -p "$store"; cp -a /cache/. "$store"/; if [ -d /metadata-cache ]; then mkdir -p /root/.cache/pnpm; cp -a /metadata-cache/. /root/.cache/pnpm/; fi; cd /workspace/snapshot; pnpm install --offline --ignore-scripts --frozen-lockfile --store-dir /tmp/pnpm-store',
     ],
     { stdio: "inherit" },
   );
