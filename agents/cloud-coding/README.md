@@ -63,7 +63,8 @@ Use an HTTPS MCP URL and keep the bearer token in the client environment.
 - Commands time out and output is capped. The implementation does not fully contain hostile process trees or output-file tampering.
 - Command status does not survive a client disconnect. An interrupted command may have changed the workspace.
 - The standard server starts with the bundled fixture. The local bridge can use a separately prepared workspace. Neither server clones repositories.
-- The patch is a `diff -u` result. The managed image does not provide Git.
+- The fixture server returns a `diff -u` patch. Its managed image does not provide Git.
+- Local patch handoff supports modified text files in its configured allowlist. It does not include new, deleted, renamed, or binary files.
 - Code Mode is experimental. Its APIs may change.
 
 ## Copy a local committed snapshot
@@ -209,26 +210,64 @@ The setup container copies that cache. It is not mounted in the execution
 container. Keep secrets out of the cache and review packages before use.
 The install remains offline and uses `--ignore-scripts`.
 
-After preparing the workspace, set a random bridge token and a separate random
-MCP token in your shell. Use values of at least 32 bytes. Do not put them in chat
-or commit them. Set `LOCAL_BROKER_CONTAINER_ID` to the full prepared container ID.
-Start the local bridge:
+After preparing the workspace, configure the source repository, reviewed commit,
+and the same file allowlist you copied into the container. The broker reads the
+baseline from that commit. It does not read the working tree.
+
+```sh
+export LOCAL_BROKER_SOURCE_REPOSITORY=/path/to/source-repository
+export LOCAL_BROKER_SOURCE_COMMIT='<reviewed-commit-id>'
+export LOCAL_BROKER_SOURCE_PATHS='["app/src/lib/example.ts","app/src/lib/example.test.ts"]'
+```
+
+Set a random bridge token and a separate random MCP token in your shell. Use
+values of at least 32 bytes. Do not put them in chat or commit them. Set
+`LOCAL_BROKER_CONTAINER_ID` to the full prepared container ID. Start the local
+bridge:
 
 ```sh
 node agents/cloud-coding/scripts/local-broker.mjs
 ```
 
-Create a private temporary env file containing `LOCAL_BROKER_TOKEN` and
-`MCP_BEARER_TOKEN`. Start the local Worker with that file:
+Create `agents/cloud-coding/.dev.vars` with `LOCAL_BROKER_TOKEN` and
+`MCP_BEARER_TOKEN`. The cloud-coding `.gitignore` excludes this file. Keep it
+private and delete it when finished. Start the local Worker:
 
 ```sh
-pnpm --filter cloud-coding exec wrangler dev --local --config wrangler.local.jsonc --port 8802 --env-file /path/to/private-env-file
+pnpm --filter cloud-coding exec wrangler dev --local --config wrangler.local.jsonc --port 8802
 ```
 
 Connect a local Codex MCP client to `http://127.0.0.1:8802/mcp` with the MCP
 token. The agent can call `search` and `execute`. Commands start in `/`; use
 `cd /workspace/snapshot` to reach the prepared files. Stop the bridge and Worker
 when finished. Remove the temporary env file and destroy the execution container.
+
+After the agent edits and tests the workspace, it can request a patch through
+Code Mode `execute`:
+
+```js
+async () => codemode.request({ method: "GET", path: "/patch" });
+```
+
+The broker returns a complete unified patch for the configured files, or an
+error if it cannot make a complete patch within 64 KiB. It reads only those
+files from the container and the pinned Git commit on the host. It does not
+apply the patch or write to the source repository. Review the patch before
+applying it. The broker checks for common secret patterns, but this scan is not
+complete. New, deleted, renamed, permission-only, and binary changes are not
+supported.
+
+To test patch retrieval through MCP with a disposable TypeScript fixture, set
+`PATCH_SMOKE_PATH` to a selected file in the snapshot and run:
+
+```sh
+export PATCH_SMOKE_PATH=src/file.ts
+node agents/cloud-coding/test/local-patch-mcp-smoke.mjs
+```
+
+The smoke test appends a marker comment to that file in the container, requests
+the patch through `execute`, and checks that the response includes the marker.
+Run it only in a disposable workspace.
 
 For a Prompt Shelf snapshot with `app/src/lib/compile-prompt.ts` and its test,
 run this smoke test from the repository root. Set `MCP_BEARER_TOKEN` in the
@@ -238,9 +277,9 @@ environment first.
 node agents/cloud-coding/test/local-bridge-smoke.mjs
 ```
 
-It checks MCP authentication, tool discovery, a project dependency, and the
-copied test. It also checks for named credential variables and the Docker socket,
-then makes one external network request that must fail.
+It checks MCP authentication, tool discovery, patch retrieval, a project
+dependency, and the copied test. It also checks for named credential variables
+and the Docker socket, then makes one external network request that must fail.
 
 The execution container holds only the files selected for the snapshot and the
 installed dependencies. The setup host and packages must still be trusted. A

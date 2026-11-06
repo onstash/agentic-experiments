@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { mkdtempSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -15,6 +15,18 @@ test("local broker authenticates, validates requests and inspects before each fi
   const dir = mkdtempSync(join(tmpdir(), "local-broker-"));
   const state = join(dir, "state");
   const log = join(dir, "log");
+  const source = join(dir, "source");
+  const sourceFile = join(source, "src", "file.ts");
+  mkdirSync(join(source, "src"), { recursive: true });
+  writeFileSync(sourceFile, "export const value = 1;\n");
+  const git = (...args) => spawnSync("git", ["-C", source, ...args], { encoding: "utf8" });
+  spawnSync("git", ["init", "-q", source]);
+  git("config", "user.email", "test@example.invalid");
+  git("config", "user.name", "Test");
+  git("add", ".");
+  git("commit", "-qm", "fixture");
+  const commit = git("rev-parse", "HEAD").stdout.trim();
+  const changed = Buffer.from("export const value = 2;\n").toString("base64");
 
   const fake = `#!/usr/bin/env node
 const fs = require('fs');
@@ -23,6 +35,8 @@ fs.appendFileSync(${JSON.stringify(log)}, JSON.stringify(args) + '\\n');
 if (args[0] === 'inspect') {
   const mode = fs.readFileSync(${JSON.stringify(state)}, 'utf8');
   console.log(JSON.stringify([{Id: ${JSON.stringify(id)}, State: {Running: mode !== 'stopped'}, Mounts: mode === 'mount' ? [{}] : [], HostConfig: {NetworkMode: mode === 'network' ? 'host' : 'none'}, NetworkSettings: {Networks: mode === 'attached' ? {none: {}, bridge: {}} : {none: {}}}, Config: {Env: mode === 'token' ? [${JSON.stringify(`SECRET=${token}`)}] : []}}]));
+} else if (args[0] === 'exec' && args[1] === '-i') {
+  process.stdout.write(JSON.stringify({files:[{path:'src/file.ts',data:${JSON.stringify(changed)}}]}));
 } else { process.stdout.write(args.at(-1)); process.exitCode = 7; }
 `;
 
@@ -41,6 +55,9 @@ if (args[0] === 'inspect') {
       LOCAL_BROKER_TOKEN: token,
       LOCAL_BROKER_CONTAINER_ID: id,
       LOCAL_BROKER_PORT: String(port),
+      LOCAL_BROKER_SOURCE_REPOSITORY: source,
+      LOCAL_BROKER_SOURCE_COMMIT: commit,
+      LOCAL_BROKER_SOURCE_PATHS: JSON.stringify(["src/file.ts"]),
     },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -80,19 +97,25 @@ if (args[0] === 'inspect') {
     assert.equal(result.output, "echo '$HOME'; exit 7");
     assert.equal(result.exitCode, 7);
     assert.ok(Number.isFinite(result.durationMs));
+
+    const patchResponse = await fetch(`http://127.0.0.1:${port}/patch`, {
+      method: "GET",
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    assert.equal(patchResponse.status, 200);
+    const patch = await patchResponse.json();
+    assert.equal(patch.commit, commit);
+    assert.deepEqual(patch.changedFiles, ["src/file.ts"]);
+    assert.match(patch.patch, /\+export const value = 2;/);
+    assert.equal(readFileSync(sourceFile, "utf8"), "export const value = 1;\n");
     const calls = readFileSync(log, "utf8").trim().split("\n").map(JSON.parse);
-    assert.equal(calls.filter((args) => args[0] === "inspect").length, 6);
-    assert.deepEqual(calls.at(-1), [
-      "exec",
-      id,
-      "timeout",
-      "-k",
-      "1s",
-      "30s",
-      "sh",
-      "-c",
-      "echo '$HOME'; exit 7",
-    ]);
+    assert.equal(calls.filter((args) => args[0] === "inspect").length, 7);
+    assert.deepEqual(
+      calls.find((args) => args[0] === "exec" && args[1] === id),
+      ["exec", id, "timeout", "-k", "1s", "30s", "sh", "-c", "echo '$HOME'; exit 7"],
+    );
+    assert.deepEqual(calls.at(-1).slice(0, 4), ["exec", "-i", id, "node"]);
   } finally {
     child.kill();
     await once(child, "exit");

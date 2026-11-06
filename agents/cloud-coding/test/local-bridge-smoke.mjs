@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { z } from "zod";
 
 const token = process.env.MCP_BEARER_TOKEN;
 
@@ -38,6 +39,22 @@ try {
     "search",
   ]);
 
+  const patchResult = await client.callTool({
+    name: "execute",
+    arguments: {
+      code: `async () => codemode.request(${JSON.stringify({ method: "GET", path: "/patch" })})`,
+    },
+  });
+
+  assert.equal(patchResult.isError, undefined, JSON.stringify(patchResult));
+  assert.equal(patchResult.content[0].type, "text");
+
+  const patch = z
+    .object({ commit: z.string(), changedFiles: z.array(z.string()), patch: z.string() })
+    .parse(JSON.parse(patchResult.content[0].text));
+
+  assert.match(patch.commit, /^[0-9a-f]{40,64}$/);
+
   const dependency = await command(
     'cd /workspace/snapshot/app && node -e \'console.log(require("zod").z.string().parse("dependency-ok"))\'',
   );
@@ -63,7 +80,7 @@ try {
 
   assert.equal(network.exitCode, 0, network.output);
   console.log(
-    "MCP, installed dependency, project test, credential checks, and network probe passed.",
+    "MCP patch retrieval, dependency, project test, credential checks, and network probe passed.",
   );
 } finally {
   await client.close();

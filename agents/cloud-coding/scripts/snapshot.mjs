@@ -26,15 +26,33 @@ export function validPath(path) {
   );
 }
 
-export function snapshot(repo, paths, reviewedCommit) {
+export function hasLikelySecret(content) {
+  return /-----BEGIN (?:[A-Z ]*PRIVATE KEY|CERTIFICATE)-----|(?:sk|ghp|github_pat|xox[baprs])[-_][A-Za-z0-9_-]{16,}|(?:api[_-]?key|secret|token|password)\s*[:=]\s*["']?[A-Za-z0-9_+/-]{16,}/i.test(
+    content,
+  );
+}
+
+export function snapshot(repo, paths, reviewedCommit, { allowHeadChange = false } = {}) {
   if (!paths.length || new Set(paths).size !== paths.length || paths.some((p) => !validPath(p))) {
     throw new Error("Provide unique, relative file paths without dotfiles or sensitive names");
   }
 
-  const commit = run("git", ["-C", repo, "rev-parse", "--verify", "HEAD^{commit}"]).trim();
+  const head = run("git", ["-C", repo, "rev-parse", "--verify", "HEAD^{commit}"]).trim();
+  const commit = reviewedCommit ?? head;
 
-  if (!/^[0-9a-f]{40,64}$/.test(commit) || (reviewedCommit && reviewedCommit !== commit)) {
+  if (
+    !/^[0-9a-f]{40,64}$/.test(commit) ||
+    (!allowHeadChange && reviewedCommit && reviewedCommit !== head)
+  ) {
     throw new Error("HEAD does not match the reviewed commit");
+  }
+
+  try {
+    execFileSync("git", ["-C", repo, "cat-file", "-e", `${commit}^{commit}`], {
+      stdio: ["ignore", "ignore", "ignore"],
+    });
+  } catch {
+    throw new Error("Reviewed commit is unavailable");
   }
 
   let total = 0;
@@ -68,11 +86,7 @@ export function snapshot(repo, paths, reviewedCommit) {
     // This filter is only a backstop. The operator must review every selected blob.
     const content = data.toString("utf8");
 
-    if (
-      /-----BEGIN (?:[A-Z ]*PRIVATE KEY|CERTIFICATE)-----|(?:sk|ghp|github_pat|xox[baprs])[-_][A-Za-z0-9_-]{16,}|(?:api[_-]?key|secret|token|password)\s*[:=]\s*["']?[A-Za-z0-9_+/-]{16,}/i.test(
-        content,
-      )
-    ) {
+    if (hasLikelySecret(content)) {
       throw new Error(`Possible secret in committed file: ${path}`);
     }
 
