@@ -7,13 +7,14 @@ without coupling to each other.
 
 ## Projects
 
-| Project       | What it explores                                                                                           | Start here                                                                          |
-| ------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Cloud Coding  | A Cloudflare MCP server that gives a coding agent a disposable workspace.                                  | [Mission](agents/cloud-coding/MISSION.md) · [README](agents/cloud-coding/README.md) |
-| Total Recall  | An authenticated Cloudflare MCP service for proposing and reading Life OS memories. Life OS owns approval. | [Source and setup](agents/total-recall/)                                            |
-| Pi extensions | Small tools for Pi coding sessions, including checklists, context observation, and turn profiling.         | [Extensions](pi-extensions/)                                                        |
-| Agent skills  | Reusable workflows for preparing worktrees, verifying changes, and managing pull requests.                 | [Skills](skills/)                                                                   |
-| Laws of UX    | Agent resources and references for applying UX principles.                                                 | [Resources](laws-of-ux/)                                                            |
+| Project       | What it explores                                                                                           | Start here                               |
+| ------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Total Recall  | An authenticated Cloudflare MCP service for proposing and reading Life OS memories. Life OS owns approval. | [Source and setup](agents/total-recall/) |
+| Pi extensions | Small tools for Pi coding sessions, including checklists, context observation, and turn profiling.         | [Extensions](pi-extensions/)             |
+| Agent skills  | Reusable workflows for preparing worktrees, verifying changes, and managing pull requests.                 | [Skills](skills/)                        |
+| Laws of UX    | Agent resources and references for applying UX principles.                                                 | [Resources](laws-of-ux/)                 |
+
+Cloud Coding moved to its own repository: [agent-cloud](https://github.com/onstash/agent-cloud).
 
 ## Repository layout
 
@@ -41,9 +42,8 @@ Install dependencies from the repository root:
 pnpm install
 ```
 
-Then follow the README for the project you want to run. For example, run the
-Cloud Coding local MCP experiment from its [README](agents/cloud-coding/README.md),
-or run Total Recall commands from `agents/total-recall/`:
+Then follow the README for the project you want to run. For example, run
+Total Recall commands from `agents/total-recall/`:
 
 ```sh
 pnpm test
