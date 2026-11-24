@@ -11,8 +11,7 @@ without coupling to each other.
 | ------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
 | Total Recall  | An authenticated Cloudflare MCP service for proposing and reading Life OS memories. Life OS owns approval. | [Source and setup](agents/total-recall/) |
 | Pi extensions | Small tools for Pi coding sessions, including checklists, context observation, and turn profiling.         | [Extensions](pi-extensions/)             |
-| Agent skills  | Reusable workflows for preparing worktrees, verifying changes, and managing pull requests.                 | [Skills](skills/)                        |
-| Laws of UX    | Agent resources and references for applying UX principles.                                                 | [Resources](laws-of-ux/)                 |
+| Agent skills  | Reusable workflows for worktrees, commits, pull requests, verification, and UX review. Moved to its own repository. | [agent-skills](https://github.com/onstash/agent-skills) |
 
 Cloud Coding moved to its own repository: [agent-cloud](https://github.com/onstash/agent-cloud).
 
@@ -22,8 +21,6 @@ Cloud Coding moved to its own repository: [agent-cloud](https://github.com/onsta
 agents/       Independent agent experiments
 packages/     Code shared by at least two active agents
 pi-extensions/ Extensions for the Pi coding agent
-skills/       Reusable agent workflows
-laws-of-ux/   UX agent resources and references
 research/     Research notes
 tools/        Repository tooling
 archive/      Inactive projects kept for reference
